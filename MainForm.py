@@ -29,7 +29,7 @@ class MainForm(QMainWindow):
         self.loadBusinessPlan()
         self.showCurrentEnvelopeValue()
         # FIXME: config or constant
-        self.startTimer(15000)
+        self.startTimer(60*60*1000)
 
     def showCurrentEnvelopeValue(self):
         env = self.__envMgr.currentEnvelope
