@@ -2,16 +2,18 @@ from ExpenseRule import ExpenseRule
 import uuid
 from lxml import etree
 from lxml.builder import E
+import logging
+
 
 class ExpenseRuleManager:
-    __ruleFileName = 'rules.xml'
+    __ruleFileName = 'data/rules.xml'
     __instance = None
-    
+
     @classmethod
     def instance(cls):
-        if ExpenseRuleManager.__instance == None:
+        if ExpenseRuleManager.__instance is None:
             ExpenseRuleManager.__instance = ExpenseRuleManager()
-        return instance
+        return ExpenseRuleManager.instance
 
     def __init__(self):
         self.__rules = []
@@ -27,25 +29,25 @@ class ExpenseRuleManager:
     def __loadSavedRules(self):
         try:
             doc = etree.parse(ExpenseRuleManager.__ruleFileName)
-        except Exception as e:
-            print(e)
+        except Exception:
+            logging.exception("Exception while reading ExpenseRule datafile")
             return
 
         for el in doc.xpath("//ExpenseRule"):
             try:
                 self.__rules.append(ExpenseRule.fromXml(el))
-            except Exception as e:
-                print(e)
-    
+            except Exception:
+                logging.exception("Exception while parsing ExpenseRule")
+
     def addRule(self, amount, fromId, toId):
-        rule = ExpenseRule(uuid.uuid4(), amount, fromId, toId)    
+        rule = ExpenseRule(uuid.uuid4(), amount, fromId, toId)
         self.__rules.append(rule)
         self.__saveAllRules()
         return rule
 
     def deleteRule(self, ruleId):
-        rule = self.__getRuleById(ruleId)    
-        if rule != None:
+        rule = self.__getRuleById(ruleId)
+        if rule is not None:
             self.__rules.remove(rule)
             self.__saveAllRules()
 
@@ -66,7 +68,7 @@ class ExpenseRuleManager:
 
     def executeRule(self, ruleId):
         rule = self.__getRuleById(ruleId)
-        if rule != None:
+        if rule is not None:
             self.__expMgr.addExpenseForRule(rule.amount, rule.fromId, rule.toId)
 
     def executeAllRules(self):

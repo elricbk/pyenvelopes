@@ -1,15 +1,20 @@
+import logging
 from ui_MainForm import Ui_MainWindow
-from PySide.QtGui import QMainWindow
+from PySide.QtGui import QMainWindow, QApplication
 from ExpenseManager import ExpenseManager
 from EnvelopeManager import EnvelopeManager
 from ExpenseRuleManager import ExpenseRuleManager
 from BusinessPlan import BusinessPlan
 from BusinessPlanItem import Frequency, ItemType
+from RulesAppliedManager import RulesAppliedManager
 from PySide.QtGui import QTableWidgetItem, QMessageBox
 from PySide.QtCore import Qt
 
+# FIXME: this is hardcoded Leftover envelope ID, this should be done not this way
+LeftoverEnvelopeId = 3
+
 class MainForm(QMainWindow):
-    def __init__(self, obj = None):
+    def __init__(self, obj=None):
         super(MainForm, self).__init__(obj)
         self.__ui = Ui_MainWindow()
         self.__ui.setupUi(self)
@@ -23,6 +28,7 @@ class MainForm(QMainWindow):
         self.loadRules()
         self.loadBusinessPlan()
         self.showCurrentEnvelopeValue()
+        # FIXME: config or constant
         self.startTimer(15000)
 
     def showCurrentEnvelopeValue(self):
@@ -31,26 +37,57 @@ class MainForm(QMainWindow):
         msg = "Current envelope ({0}): {1}".format(env.name, value)
         self.__ui.statusbar.showMessage(msg)
 
-
     def timerEvent(self, event):
-        #print("Timer event for timer: {0}".format(event.timerId()))
+        logging.debug("Timer event for timer: %d", event.timerId())
         if self.needToApplyRules():
+            # FIXME: there should be transaction here -- all stuff should be done together or not at all
             self.createEnvelopeForNewWeek()
+            self.transferAllFromLastWeek()
             self.__ruleMgr.executeAllRules()
+            try:
+                self.markWeekAsRulesApplied()
+            except Exception:
+                QMessageBox.critical(self, "Error marking this week as rules applied",
+                                     "This error should be fixed manually")
+                QApplication.quit()
             self.loadExpenses()
 
+    def markWeekAsRulesApplied(self):
+        self.__rulesAppliedMgr.markWeekAsRulesApplied(self.__envMgr.currentEnvelope.name)
+
+    def transferAllFromLastWeek(self):
+        lwe = self.__envMgr.lastWeekEnvelope
+        logging.debug("Transferring all money (%d) from last week (%s)", self.__envMgr.envelopeValue(lwe.id), lwe.name)
+        self.__expMgr.addExpenseForRule(
+            self.__envMgr.envelopeValue(lwe.id),
+            lwe.id,
+            self.__envMgr.currentEnvelope.id,
+            "Automatic transfer of money from previous week"
+        )
+
     def needToApplyRules(self):
-        return False
+        curEnvName = self.__envMgr.currentEnvelope.name
+        logging.debug("Checking if need to apply rules for envelope %s", curEnvName)
+        shouldApply = not self.__rulesAppliedMgr.rulesAppliedForWeek(curEnvName)
+        logging.debug("Rules should be applied: %s", shouldApply)
+        return shouldApply
 
     def createEnvelopeForNewWeek(self):
-        print("Here new envelope will be created")
+        logging.debug("Creating envelope for current week")
+        self.__expMgr.addExpenseForRule(
+            self.__bp.weeklyEnvelope,
+            LeftoverEnvelopeId,
+            self.__envMgr.currentEnvelope.id,
+            "Automatic creation of weekly envelope"
+        )
 
     def setupManagers(self):
         self.__expMgr = ExpenseManager()
         self.__envMgr = EnvelopeManager()
         self.__ruleMgr = ExpenseRuleManager()
         self.__bp = BusinessPlan()
-        
+        self.__rulesAppliedMgr = RulesAppliedManager()
+
         self.__expMgr.setEnvelopeManager(self.__envMgr)
         self.__envMgr.setExpenseManager(self.__expMgr)
         self.__ruleMgr.setExpenseManager(self.__expMgr)
@@ -66,20 +103,22 @@ class MainForm(QMainWindow):
         self.__ui.twRules.setHorizontalHeaderLabels(['Amount', 'From', 'To'])
 
     def setupPlanTable(self):
-        self.__ui.twBusinessPlan.setHorizontalHeaderLabels(['Type', 'Amount', 'Name', 'Description', 'Weekly', 'Envelope'])
+        self.__ui.twBusinessPlan.setHorizontalHeaderLabels(
+            ['Type', 'Amount', 'Name', 'Description', 'Weekly', 'Envelope'])
         for i in range(ItemType.ItemsCount):
             self.__ui.cbItemType.addItem(ItemType.desc(i), i)
         self.__ui.cbItemType.setCurrentIndex(1)
         for i in range(Frequency.ItemsCount):
             self.__ui.cbItemFrequency.addItem(Frequency.desc(i), i)
         self.__ui.cbItemFrequency.setCurrentIndex(4)
-       
+
     def addBusinessPlanItem(self):
         try:
             cbType = self.__ui.cbItemType
             cbFreq = self.__ui.cbItemFrequency
             parts = self.__ui.leNewBPItem.text().split(' ', 2)
-            item = self.__bp.addItem(cbType.itemData(cbType.currentIndex()), int(parts[0]), parts[1], cbFreq.itemData(cbFreq.currentIndex()))  
+            item = self.__bp.addItem(cbType.itemData(cbType.currentIndex()), int(parts[0]), parts[1],
+                                     cbFreq.itemData(cbFreq.currentIndex()))
             self.addRowForPlanItem(item)
             self.__ui.leNewBPItem.setText('')
             self.showWeeklyStats()
@@ -98,8 +137,9 @@ class MainForm(QMainWindow):
             self.__ruleMgr.addRule(finItem.weeklyValue, 3, envId)
         self.loadRules()
         bp = self.__bp
-        QMessageBox.information(self, "Financial plan saved", "Weekly income: {0}\nWeekly expense: {1}\nWeekly envelope: {2}".format(
-            bp.weeklyIncome, bp.weeklyExpense, bp.weeklyEnvelope))
+        QMessageBox.information(self, "Financial plan saved",
+                                "Weekly income: {0}\nWeekly expense: {1}\nWeekly envelope: {2}".format(
+                                    bp.weeklyIncome, bp.weeklyExpense, bp.weeklyEnvelope))
 
     def clearTable(self, tw):
         tw.clearContents()
@@ -115,9 +155,9 @@ class MainForm(QMainWindow):
 
     def showWeeklyStats(self):
         info = "Weekly stats: Income = {0}, Expense = {1}, Envelope = {2}".format(
-                self.__bp.weeklyIncome, 
-                self.__bp.weeklyExpense, 
-                self.__bp.weeklyEnvelope)
+            self.__bp.weeklyIncome,
+            self.__bp.weeklyExpense,
+            self.__bp.weeklyEnvelope)
         self.__ui.lblWeeklyStats.setText(info)
 
     def addRowForPlanItem(self, item):
@@ -125,7 +165,7 @@ class MainForm(QMainWindow):
         row = tw.rowCount()
         tw.setRowCount(row + 1)
         tw.setItem(row, 0, self.itemWithId(ItemType.desc(item.type), item.id))
-        tw.setItem(row, 1, self.itemWithId(str(item.amount), item.id)) 
+        tw.setItem(row, 1, self.itemWithId(str(item.amount), item.id))
         tw.setItem(row, 2, self.itemWithId(item.name, item.id))
         tw.setItem(row, 3, self.itemWithId(Frequency.desc(item.freq), item.id))
         tw.setItem(row, 4, self.itemWithId(str(item.weeklyValue), item.id))
@@ -166,7 +206,7 @@ class MainForm(QMainWindow):
         tw.setRowCount(row + 1)
         color = Qt.black
         if not ex.manual:
-           color = Qt.gray 
+            color = Qt.gray
         tw.setItem(row, 0, self.coloredTableWidgetItem(str(ex.date.date()), color))
         tw.setItem(row, 1, self.coloredTableWidgetItem(str(ex.value), color))
         tw.setItem(row, 2, self.coloredTableWidgetItem(self.__envMgr.envNameForId(ex.fromId), color))
@@ -196,7 +236,7 @@ class MainForm(QMainWindow):
 
     def addEnvelope(self):
         try:
-            env = self.__envMgr.addEnvelope(self.__ui.leNewEnvelope.text(), u'some evelope description here')
+            env = self.__envMgr.addEnvelope(self.__ui.leNewEnvelope.text(), u'some envelope description here')
             self.addRowForEnvelope(env)
             self.__ui.leNewEnvelope.setText('')
         except Exception as e:
@@ -220,7 +260,7 @@ class MainForm(QMainWindow):
         tw.setRowCount(row + 1)
         tw.setItem(row, 0, self.itemWithId(str(self.__envMgr.envelopeValue(env.id)), env.id))
         tw.setItem(row, 1, self.itemWithId(env.name, env.id))
-        
+
     def itemWithId(self, itemText, itemId):
         item = QTableWidgetItem(itemText)
         item.setData(Qt.UserRole, itemId)

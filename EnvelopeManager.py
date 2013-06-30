@@ -1,23 +1,23 @@
 from Envelope import Envelope
 import datetime
-import os.path
 from lxml import etree
 from lxml.builder import E
 
+
 class EnvelopeManager:
-    __envelopeFileName = 'envelopes.xml'
+    __envelopeFileName = 'data/envelopes.xml'
     __instance = None
 
     @classmethod
     def instance(cls):
-        if (EnvelopeManager.__instance == None):
+        if EnvelopeManager.__instance is None:
             EnvelopeManager.__instance = EnvelopeManager()
-        return __instance
+        return EnvelopeManager.__instance
 
     def __init__(self):
-       self.__envelopes = { 1: Envelope.Income(), 2: Envelope.Expense(), 3: Envelope.Leftover() }
-       self.__expMgr = None
-       self.__loadSavedEnvelopes()
+        self.__envelopes = {1: Envelope.Income(), 2: Envelope.Expense(), 3: Envelope.Leftover()}
+        self.__expMgr = None
+        self.__loadSavedEnvelopes()
 
     def __maxId(self):
         return max(self.__envelopes.keys())
@@ -31,7 +31,7 @@ class EnvelopeManager:
         self.__envelopes[e.id] = e
         self.__saveAllEnvelopes()
         return e
-    
+
     def __saveAllEnvelopes(self):
         doc = E.Envelopes()
         doc.extend([env.toXml() for env in self.__envelopes.values()])
@@ -60,14 +60,15 @@ class EnvelopeManager:
 
     def idForEnvName(self, envName):
         #print(u"Searching for envelope '{0}'".format(envName))
+        # FIXME: envelope name is not unique, it may lead to problems
         for k, v in self.__envelopes.items():
             if envName == v.name:
                 return k
-        raise Exception('No envelope with given name') 
+        raise Exception('No envelope with given name')
 
     def envNameForId(self, envId):
         return self.__envelopes[envId].name
-    
+
     def envelopeValue(self, envId):
         value = 0
         for ex in self.__expMgr.expenses:
@@ -77,10 +78,26 @@ class EnvelopeManager:
                 value += ex.value
         return value
 
+    @staticmethod
+    def weekEnvelopeName(isoDate):
+        year = isoDate[0]
+        weekNum = isoDate[1]
+        return "Week_{0}_{1}".format(year, weekNum)
+
     @property
     def currentEnvelope(self):
-        weekNum = datetime.datetime.now().isocalendar()[1]
-        envName = "Week_{0}".format(weekNum)
+        isoDate = datetime.datetime.now().isocalendar()
+        envName = self.weekEnvelopeName(isoDate)
+        for k, v in self.__envelopes.items():
+            if envName == v.name:
+                return v
+
+        return self.addEnvelope(envName)
+
+    @property
+    def lastWeekEnvelope(self):
+        isoDate = (datetime.datetime.now() - datetime.timedelta(days=7)).isocalendar()
+        envName = self.weekEnvelopeName(isoDate)
         for k, v in self.__envelopes.items():
             if envName == v.name:
                 return v
@@ -88,11 +105,9 @@ class EnvelopeManager:
         return self.addEnvelope(envName)
 
     def envelopeForDate(self, date):
-        weekNum = date.isodate()[1]
-        envName = "Week_{0}".format(weekNum)
+        envName = self.weekEnvelopName(date.isodate())
         for k, v in self.__envelopes.items():
             if envName == v.name:
                 return v
 
         return self.addEnvelope(envName)
-        

@@ -1,13 +1,14 @@
-import datetime 
+import datetime
 import re
 import uuid
 from lxml.builder import E
+
 
 class Expense:
     def __init__(self, data):
         #print(data)
         self.__id = data[0]
-        self.__date = data[1] 
+        self.__date = data[1]
         self.__value = float(data[2])
         self.__desc = data[3]
         self.__fromId = int(data[4])
@@ -17,7 +18,7 @@ class Expense:
         else:
             self.__line = ''
         if len(data) > 7:
-            self.__manual = bool(data[7])
+            self.__manual = data[7]
         else:
             self.__manual = True
 
@@ -27,24 +28,27 @@ class Expense:
         line = line.strip()
         parts = line.split('\t')
         parts[0] = uuid.UUID(parts[0])
-        parts[1] = datetime.datetime(*map(int, re.split('[^\d]', parts[1])[:-1])) 
+        parts[1] = datetime.datetime(*map(int, re.split('[^\d]', parts[1])[:-1]))
         ex = Expense(parts)
         return ex
 
     def toSaveLine(self):
-        return u"{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}".format(self.__id, self.__date, self.__value, self.__desc, self.__fromId, self.__toId, self.__line, self.__manual)
+        saveLineFmt = u"{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}"
+        return saveLineFmt.format(self.__id, self.__date, self.__value, self.__desc, self.__fromId, self.__toId,
+            self.__line, self.__manual)
 
     @classmethod
     def fromXml(cls, el):
-        parts = []
-        parts.append(uuid.UUID(el.get("id")))
-        parts.append(datetime.datetime(*map(int, re.split('[^\d]', el.get("date"))[:-1])))
-        parts.append(float(el.get("value")))
-        parts.append(el.get("desc"))
-        parts.append(int(el.get("fromId")))
-        parts.append(int(el.get("toId")))
-        parts.append(el.get("line"))
-        parts.append(bool(el.get("manual")))
+        parts = [
+            uuid.UUID(el.get("id")),
+            datetime.datetime(*map(int, re.split('[^\d]', el.get("date"))[:-1])),
+            float(el.get("value")),
+            el.get("desc"),
+            int(el.get("fromId")),
+            int(el.get("toId")),
+            el.get("line"),
+            el.get("manual") == "True",
+        ]
         return Expense(parts)
 
     def toXml(self):
@@ -59,19 +63,19 @@ class Expense:
             manual=str(self.__manual))
 
     @property
-    def value(self): 
+    def value(self):
         return self.__value
 
     @property
-    def fromId(self): 
+    def fromId(self):
         return self.__fromId
 
     @property
-    def toId(self): 
+    def toId(self):
         return self.__toId
 
     @property
-    def desc(self): 
+    def desc(self):
         return self.__desc
 
     @property

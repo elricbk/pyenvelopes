@@ -6,14 +6,15 @@ import uuid
 from lxml.etree import ElementTree
 from lxml import etree
 from lxml.builder import E
+import logging
 
 class ExpenseManager:
-    __expenseFileName = 'expenses.xml'
+    __expenseFileName = 'data/expenses.xml'
     __instance = None
     
     @classmethod
     def instance(cls):
-        if (ExpenseManager.__instance == None):
+        if ExpenseManager.__instance is None:
             ExpenseManager.__instance = ExpenseManager()
         return ExpenseManager.__instance
 
@@ -35,15 +36,17 @@ class ExpenseManager:
         self.__saveAllExpenses()
         return ex
 
-    def addExpenseForRule(self, amount, fromId, toId):
-        data = [uuid.uuid4()]
-        data.append(datetime.datetime.now())
-        data.append(amount)
-        data.append('Automatic expense')
-        data.append(fromId)
-        data.append(toId)
-        data.append('')
-        data.append(False)
+    def addExpenseForRule(self, amount, fromId, toId, comment='Automatic expense'):
+        data = [
+            uuid.uuid4(),
+            datetime.datetime.now(),
+            amount,
+            comment,
+            fromId,
+            toId,
+            '',
+            False,
+        ]
         ex = Expense(data)
         self.__saveAllExpenses()
         self.__expenses.append(ex)
@@ -51,14 +54,16 @@ class ExpenseManager:
 
     def __fromUserInput(self, line):
         parts = self.__parseExpense(line)
-        data = [uuid.uuid4()]
-        data.append(datetime.datetime.now())
-        data.append(parts[0])
-        data.append(parts[1])
-        data.append(self.__envMgr.idForEnvName(parts[2][1:]))
-        data.append(self.__envMgr.idForEnvName(parts[3][1:]))
-        data.append(line)
-        data.append(True)
+        data = [
+            uuid.uuid4(),
+            datetime.datetime.now(),
+            parts[0],
+            parts[1],
+            self.__envMgr.idForEnvName(parts[2][1:]),
+            self.__envMgr.idForEnvName(parts[3][1:]),
+            line,
+            True
+        ]
         return Expense(data)
 
     def __loadSavedExpenses(self):

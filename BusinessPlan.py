@@ -2,9 +2,11 @@ from BusinessPlanItem import BusinessPlanItem, ItemType, Frequency
 import uuid
 from lxml import etree
 from lxml.builder import E
+import logging
+
 
 class BusinessPlan:
-    __itemsFileName = 'business_plan.xml'
+    __itemsFileName = 'data/business_plan.xml'
 
     def __init__(self):
         self.__items = []
@@ -13,21 +15,22 @@ class BusinessPlan:
     def __load(self):
         try:
             doc = etree.parse(BusinessPlan.__itemsFileName)
-        except Exception as e:
-            print(e)
+        except Exception:
+            logging.exception("Exception while reading business plan data")
             return
 
         for el in doc.xpath("//Item"):
             try:
                 item = BusinessPlanItem.fromXml(el)
                 self.__items.append(item)
-            except Exception as e:
-                print(e)
+            except Exception:
+                logging.exception("Exception while parsing BusinessPlanItem")
                 continue
 
     def save(self):
         doc = E.BusinessPlan()
         doc.extend([item.toXml() for item in self.__items])
+        # FIXME: should write safely here
         etree.ElementTree(doc).write(BusinessPlan.__itemsFileName, pretty_print=True)
 
     def addItem(self, itemType, amount, name, freq):
