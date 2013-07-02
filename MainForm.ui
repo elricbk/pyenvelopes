@@ -25,6 +25,9 @@
         <string>Expenses</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_2">
+        <property name="spacing">
+         <number>-1</number>
+        </property>
         <item>
          <widget class="QLabel" name="label">
           <property name="text">
@@ -33,7 +36,41 @@
          </widget>
         </item>
         <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_8">
+          <item>
+           <widget class="QPushButton" name="pbDeleteExpense">
+            <property name="text">
+             <string>Delete Expense</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pbReload">
+            <property name="text">
+             <string>Reload</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_3">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </item>
+        <item>
          <widget class="QTableWidget" name="tableWidget">
+          <property name="editTriggers">
+           <set>QAbstractItemView::NoEditTriggers</set>
+          </property>
           <property name="selectionMode">
            <enum>QAbstractItemView::SingleSelection</enum>
           </property>
@@ -51,6 +88,9 @@
           </attribute>
           <attribute name="verticalHeaderDefaultSectionSize">
            <number>19</number>
+          </attribute>
+          <attribute name="verticalHeaderStretchLastSection">
+           <bool>false</bool>
           </attribute>
           <column/>
           <column/>
@@ -463,6 +503,38 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>pbDeleteExpense</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>deleteExpense()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>104</x>
+     <y>83</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>309</x>
+     <y>313</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pbReload</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>reloadValues()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>218</x>
+     <y>83</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>309</x>
+     <y>313</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>addExpense()</slot>
@@ -471,5 +543,7 @@
   <slot>applyRules()</slot>
   <slot>addBusinessPlanItem()</slot>
   <slot>applyBusinessPlan()</slot>
+  <slot>deleteExpense()</slot>
+  <slot>reloadValues()</slot>
  </slots>
 </ui>

@@ -1,6 +1,6 @@
 from BusinessPlanItem import BusinessPlanItem, ItemType, Frequency
 import uuid
-from lxml import etree
+import lxml.etree as etree
 from lxml.builder import E
 import logging
 

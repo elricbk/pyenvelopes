@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '.\MainForm.ui'
+# Form implementation generated from reading ui file 'MainForm.ui'
 #
-# Created: Mon Sep 03 18:35:15 2012
-#      by: pyside-uic 0.2.13 running on PySide 1.0.7
+# Created: Tue Jul  2 22:42:24 2013
+#      by: pyside-uic 0.2.13 running on PySide 1.1.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -22,11 +22,24 @@ class Ui_MainWindow(object):
         self.tab = QtGui.QWidget()
         self.tab.setObjectName("tab")
         self.verticalLayout_2 = QtGui.QVBoxLayout(self.tab)
+        self.verticalLayout_2.setSpacing(-1)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.label = QtGui.QLabel(self.tab)
         self.label.setObjectName("label")
         self.verticalLayout_2.addWidget(self.label)
+        self.horizontalLayout_8 = QtGui.QHBoxLayout()
+        self.horizontalLayout_8.setObjectName("horizontalLayout_8")
+        self.pbDeleteExpense = QtGui.QPushButton(self.tab)
+        self.pbDeleteExpense.setObjectName("pbDeleteExpense")
+        self.horizontalLayout_8.addWidget(self.pbDeleteExpense)
+        self.pbReload = QtGui.QPushButton(self.tab)
+        self.pbReload.setObjectName("pbReload")
+        self.horizontalLayout_8.addWidget(self.pbReload)
+        spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.horizontalLayout_8.addItem(spacerItem)
+        self.verticalLayout_2.addLayout(self.horizontalLayout_8)
         self.tableWidget = QtGui.QTableWidget(self.tab)
+        self.tableWidget.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
         self.tableWidget.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
         self.tableWidget.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.tableWidget.setColumnCount(5)
@@ -36,6 +49,7 @@ class Ui_MainWindow(object):
         self.tableWidget.horizontalHeader().setStretchLastSection(True)
         self.tableWidget.verticalHeader().setVisible(False)
         self.tableWidget.verticalHeader().setDefaultSectionSize(19)
+        self.tableWidget.verticalHeader().setStretchLastSection(False)
         self.verticalLayout_2.addWidget(self.tableWidget)
         self.horizontalLayout = QtGui.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
@@ -105,8 +119,8 @@ class Ui_MainWindow(object):
         self.verticalLayout_4.addWidget(self.twRules)
         self.horizontalLayout_3 = QtGui.QHBoxLayout()
         self.horizontalLayout_3.setObjectName("horizontalLayout_3")
-        spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout_3.addItem(spacerItem)
+        spacerItem1 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.horizontalLayout_3.addItem(spacerItem1)
         self.btnApplyRules = QtGui.QPushButton(self.tab_3)
         self.btnApplyRules.setObjectName("btnApplyRules")
         self.horizontalLayout_3.addWidget(self.btnApplyRules)
@@ -151,8 +165,8 @@ class Ui_MainWindow(object):
         self.verticalLayout_5.addLayout(self.horizontalLayout_4)
         self.horizontalLayout_5 = QtGui.QHBoxLayout()
         self.horizontalLayout_5.setObjectName("horizontalLayout_5")
-        spacerItem1 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout_5.addItem(spacerItem1)
+        spacerItem2 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.horizontalLayout_5.addItem(spacerItem2)
         self.pbApplyPlan = QtGui.QPushButton(self.tab_4)
         self.pbApplyPlan.setObjectName("pbApplyPlan")
         self.horizontalLayout_5.addWidget(self.pbApplyPlan)
@@ -175,11 +189,15 @@ class Ui_MainWindow(object):
         QtCore.QObject.connect(self.pbAddBPItem, QtCore.SIGNAL("clicked()"), MainWindow.addBusinessPlanItem)
         QtCore.QObject.connect(self.leNewBPItem, QtCore.SIGNAL("returnPressed()"), MainWindow.addBusinessPlanItem)
         QtCore.QObject.connect(self.pbApplyPlan, QtCore.SIGNAL("clicked()"), MainWindow.applyBusinessPlan)
+        QtCore.QObject.connect(self.pbDeleteExpense, QtCore.SIGNAL("clicked()"), MainWindow.deleteExpense)
+        QtCore.QObject.connect(self.pbReload, QtCore.SIGNAL("clicked()"), MainWindow.reloadValues)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QtGui.QApplication.translate("MainWindow", "Envelopes", None, QtGui.QApplication.UnicodeUTF8))
         self.label.setText(QtGui.QApplication.translate("MainWindow", "Expenses", None, QtGui.QApplication.UnicodeUTF8))
+        self.pbDeleteExpense.setText(QtGui.QApplication.translate("MainWindow", "Delete Expense", None, QtGui.QApplication.UnicodeUTF8))
+        self.pbReload.setText(QtGui.QApplication.translate("MainWindow", "Reload", None, QtGui.QApplication.UnicodeUTF8))
         self.leExpenseUserInput.setPlaceholderText(QtGui.QApplication.translate("MainWindow", "Enter new expense here", None, QtGui.QApplication.UnicodeUTF8))
         self.btnAddExpense.setText(QtGui.QApplication.translate("MainWindow", "Add expense", None, QtGui.QApplication.UnicodeUTF8))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), QtGui.QApplication.translate("MainWindow", "Expenses", None, QtGui.QApplication.UnicodeUTF8))

@@ -7,6 +7,7 @@ from lxml.etree import ElementTree
 from lxml import etree
 from lxml.builder import E
 import logging
+import shutil
 
 class ExpenseManager:
     __expenseFileName = 'data/expenses.xml'
@@ -52,6 +53,10 @@ class ExpenseManager:
         self.__expenses.append(ex)
         return ex
 
+    def deleteExpense(self, expense):
+        self.expenses.remove(expense)
+        self.__saveAllExpenses()
+
     def __fromUserInput(self, line):
         parts = self.__parseExpense(line)
         data = [
@@ -83,7 +88,9 @@ class ExpenseManager:
         doc = E.Expenses()
         doc.extend([ex.toXml() for ex in self.__expenses])
         fname = ExpenseManager.__expenseFileName
-        ElementTree(doc).write(fname, encoding="utf-8", pretty_print=True)
+        tmpFileName = fname + '.temp'
+        ElementTree(doc).write(tmpFileName, encoding="utf-8", pretty_print=True)
+        shutil.move(tmpFileName, fname)
 
     def __parseExpense(self, line):
         line = line.strip()

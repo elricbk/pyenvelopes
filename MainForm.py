@@ -13,6 +13,7 @@ from PySide.QtCore import Qt
 # FIXME: this is hardcoded Leftover envelope ID, this should be done not this way
 LeftoverEnvelopeId = 3
 
+
 class MainForm(QMainWindow):
     def __init__(self, obj=None):
         super(MainForm, self).__init__(obj)
@@ -29,7 +30,8 @@ class MainForm(QMainWindow):
         self.loadBusinessPlan()
         self.showCurrentEnvelopeValue()
         # FIXME: config or constant
-        self.startTimer(60*60*1000)
+        self.applyRulesAutomatically()
+        self.startTimer(60 * 60 * 1000)
 
     def showCurrentEnvelopeValue(self):
         env = self.__envMgr.currentEnvelope
@@ -37,8 +39,7 @@ class MainForm(QMainWindow):
         msg = "Current envelope ({0}): {1}".format(env.name, value)
         self.__ui.statusbar.showMessage(msg)
 
-    def timerEvent(self, event):
-        logging.debug("Timer event for timer: %d", event.timerId())
+    def applyRulesAutomatically(self):
         if self.needToApplyRules():
             # FIXME: there should be transaction here -- all stuff should be done together or not at all
             self.createEnvelopeForNewWeek()
@@ -51,6 +52,10 @@ class MainForm(QMainWindow):
                                      "This error should be fixed manually")
                 QApplication.quit()
             self.loadExpenses()
+
+    def timerEvent(self, event):
+        logging.debug("Timer event for timer: %d", event.timerId())
+        self.applyRulesAutomatically()
 
     def markWeekAsRulesApplied(self):
         self.__rulesAppliedMgr.markWeekAsRulesApplied(self.__envMgr.currentEnvelope.name)
@@ -200,6 +205,9 @@ class MainForm(QMainWindow):
         for ex in self.__expMgr.expenses:
             self.addRowForExpense(self.__ui.tableWidget, ex)
         self.__ui.tableWidget.resizeColumnsToContents()
+        # HACK: removes glitch with resizing last column too much (Mac OS 10.7, PySide 1.1)
+        self.__ui.tableWidget.resize(self.__ui.tableWidget.width() - 1, self.__ui.tableWidget.height())
+        self.__ui.tableWidget.resize(self.__ui.tableWidget.width() + 1, self.__ui.tableWidget.height())
 
     def addRowForExpense(self, tw, ex):
         row = tw.rowCount()
@@ -207,15 +215,17 @@ class MainForm(QMainWindow):
         color = Qt.black
         if not ex.manual:
             color = Qt.gray
-        tw.setItem(row, 0, self.coloredTableWidgetItem(str(ex.date.date()), color))
-        tw.setItem(row, 1, self.coloredTableWidgetItem(str(ex.value), color))
-        tw.setItem(row, 2, self.coloredTableWidgetItem(self.__envMgr.envNameForId(ex.fromId), color))
-        tw.setItem(row, 3, self.coloredTableWidgetItem(self.__envMgr.envNameForId(ex.toId), color))
-        tw.setItem(row, 4, self.coloredTableWidgetItem(ex.desc, color))
+        tw.setItem(row, 0, self.coloredTableWidgetItem(str(ex.date.date()), color, ex))
+        tw.setItem(row, 1, self.coloredTableWidgetItem(str(ex.value), color, ex))
+        tw.setItem(row, 2, self.coloredTableWidgetItem(self.__envMgr.envNameForId(ex.fromId), color, ex))
+        tw.setItem(row, 3, self.coloredTableWidgetItem(self.__envMgr.envNameForId(ex.toId), color, ex))
+        tw.setItem(row, 4, self.coloredTableWidgetItem(ex.desc, color, ex))
 
-    def coloredTableWidgetItem(self, text, color):
+    def coloredTableWidgetItem(self, text, color, userData=None):
         item = QTableWidgetItem(text)
         item.setForeground(color)
+        if userData:
+            item.setData(Qt.UserRole, userData)
         return item
 
     def addExpense(self):
@@ -228,6 +238,26 @@ class MainForm(QMainWindow):
             self.scrollToLastExpenseRow()
         except Exception as e:
             print(e)
+
+    def deleteExpense(self):
+        items = self.__ui.tableWidget.selectedItems()
+        if len(items) > 0:
+            res = QMessageBox.question(self, "Confirmation", "Are you sure you want to delete this expense?",
+                                       QMessageBox.Ok, QMessageBox.Cancel)
+            if res == QMessageBox.Ok:
+                expenses = set(i.data(Qt.UserRole) for i in items)
+                for expense in expenses:
+                    self.__expMgr.deleteExpense(expense)
+                self.refreshEnvelopeValues()
+                self.showCurrentEnvelopeValue()
+                self.loadExpenses()
+                self.scrollToLastExpenseRow()
+
+    def reloadValues(self):
+        self.refreshEnvelopeValues()
+        self.loadExpenses()
+        self.showCurrentEnvelopeValue()
+        self.scrollToLastExpenseRow()
 
     def scrollToLastExpenseRow(self):
         tw = self.__ui.tableWidget

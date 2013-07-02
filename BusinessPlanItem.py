@@ -15,7 +15,7 @@ class ItemType:
             return 'Expense'
         else:
             return ''
-    
+
 class Frequency:
     Weekly = 1
     OnceInTwoWeeks = 2
@@ -43,13 +43,14 @@ class Frequency:
             return ''
 
 class BusinessPlanItem:
-    __freqMultiplier = { Frequency.Weekly : 1,
-            Frequency.OnceInTwoWeeks: 1.0/2,
-            Frequency.TwiceInMonth: 12*2.0/52,
-            Frequency.Monthly: 12.0/52,
-            Frequency.Quarterly: 12.0/52/4,
-            Frequency.Quarterly: 12.0/52/6,
-            Frequency.Yearly: 1.0/52,
+    __freqMultiplier = {
+        Frequency.Weekly : 1,
+        Frequency.OnceInTwoWeeks: 1.0/2,
+        Frequency.TwiceInMonth: 12*2.0/52,
+        Frequency.Monthly: 12.0/52,
+        Frequency.Quarterly: 12.0/52/4,
+        Frequency.HalfYear: 12.0/52/2,
+        Frequency.Yearly: 1.0/52,
     }
 
     def __init__(self, itemId, itemType, amount, name, freq):
@@ -103,7 +104,7 @@ class BusinessPlanItem:
     @property
     def freq(self):
         return self.__freq
-    
+
     @property
     def weeklyValue(self):
         return math.ceil(self.amount*BusinessPlanItem.__freqMultiplier[self.freq])
