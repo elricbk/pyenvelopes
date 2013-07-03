@@ -2,6 +2,7 @@ from Envelope import Envelope
 import datetime
 from lxml import etree
 from lxml.builder import E
+import logging
 
 
 class EnvelopeManager:
@@ -26,7 +27,9 @@ class EnvelopeManager:
         self.__expMgr = expMgr
 
     def addEnvelope(self, name, desc=''):
-        #print(u"Adding envelope with name {0}, id will be {1}".format(name, self.__maxId()))
+        logging.info("Adding envelope with name %s, id will be %d", name, self.__maxId())
+        if name.lower() in (v.name.lower() for v in self.envelopes.values()):
+            raise RuntimeError("Envelope with given name already exists")
         e = Envelope.fromData(self.__maxId() + 1, name, desc)
         self.__envelopes[e.id] = e
         self.__saveAllEnvelopes()

@@ -276,8 +276,13 @@ class MainForm(QMainWindow):
         tw.scrollToItem(item)
 
     def addEnvelope(self):
+        env_name = self.__ui.leNewEnvelope.text().strip().lower()
+        if env_name in (v.name.lower() for v in self.__envMgr.envelopes.values()):
+            QMessageBox.warning(self, "Warning", "Envelope with given name already exists")
+            return
+
         try:
-            env = self.__envMgr.addEnvelope(self.__ui.leNewEnvelope.text(), u'some envelope description here')
+            env = self.__envMgr.addEnvelope(env_name, u'some envelope description here')
             self.addRowForEnvelope(env)
             self.__ui.leNewEnvelope.setText('')
         except Exception as e:
