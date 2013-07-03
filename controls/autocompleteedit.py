@@ -15,6 +15,7 @@ class AutoCompleteEdit(QtGui.QLineEdit):
         self._addSpaceAfterCompleting = addSpaceAfterCompleting
         self._completer = QtGui.QCompleter(model)
         self._completer.setWidget(self)
+        self._completer.setCaseSensitivity(QtCore.Qt.CaseInsensitive)
         self.connect(
             self._completer,
             QtCore.SIGNAL('activated(QString)'),

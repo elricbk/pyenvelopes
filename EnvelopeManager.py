@@ -62,7 +62,7 @@ class EnvelopeManager:
         #print(u"Searching for envelope '{0}'".format(envName))
         # FIXME: envelope name is not unique, it may lead to problems
         for k, v in self.__envelopes.items():
-            if envName == v.name:
+            if envName.lower() == v.name.lower():
                 return k
         raise Exception('No envelope with given name')
 
