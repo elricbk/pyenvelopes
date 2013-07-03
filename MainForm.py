@@ -1,4 +1,5 @@
 import logging
+import datetime
 from ui_MainForm import Ui_MainWindow
 from PySide.QtGui import QMainWindow, QApplication
 from ExpenseManager import ExpenseManager
@@ -10,6 +11,7 @@ from RulesAppliedManager import RulesAppliedManager
 from PySide.QtGui import QTableWidgetItem, QMessageBox
 from PySide.QtCore import Qt
 
+DAYS_TO_SHOW_THRESHOLD = 14
 # FIXME: this is hardcoded Leftover envelope ID, this should be done not this way
 LeftoverEnvelopeId = 3
 
@@ -213,7 +215,8 @@ class MainForm(QMainWindow):
 
     def loadExpenses(self):
         self.clearTable(self.__ui.tableWidget)
-        for ex in self.__expMgr.expenses:
+        now = datetime.datetime.now()
+        for ex in (e for e in self.__expMgr.expenses if (now - e.date).days < DAYS_TO_SHOW_THRESHOLD):
             self.addRowForExpense(self.__ui.tableWidget, ex)
         self.__ui.tableWidget.resizeColumnsToContents()
         # HACK: removes glitch with resizing last column too much (Mac OS 10.7, PySide 1.1)
@@ -323,9 +326,3 @@ class MainForm(QMainWindow):
             if (ex.fromId == envId) or (ex.toId == envId):
                 self.addRowForExpense(tw, ex)
         tw.resizeColumnsToContents()
-
-
-
-
-
-
