@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'MainForm.ui'
 #
-# Created: Tue Jul  2 22:42:24 2013
+# Created: Wed Jul  3 22:09:37 2013
 #      by: pyside-uic 0.2.13 running on PySide 1.1.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -53,7 +53,7 @@ class Ui_MainWindow(object):
         self.verticalLayout_2.addWidget(self.tableWidget)
         self.horizontalLayout = QtGui.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
-        self.leExpenseUserInput = QtGui.QLineEdit(self.tab)
+        self.leExpenseUserInput = AutoCompleteEdit(self.tab)
         self.leExpenseUserInput.setObjectName("leExpenseUserInput")
         self.horizontalLayout.addWidget(self.leExpenseUserInput)
         self.btnAddExpense = QtGui.QPushButton(self.tab)
@@ -215,3 +215,4 @@ class Ui_MainWindow(object):
         self.pbApplyPlan.setText(QtGui.QApplication.translate("MainWindow", "Apply plan", None, QtGui.QApplication.UnicodeUTF8))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_4), QtGui.QApplication.translate("MainWindow", "Financial Plan", None, QtGui.QApplication.UnicodeUTF8))
 
+from controls.autocompleteedit import AutoCompleteEdit

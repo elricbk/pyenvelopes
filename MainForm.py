@@ -29,9 +29,20 @@ class MainForm(QMainWindow):
         self.loadRules()
         self.loadBusinessPlan()
         self.showCurrentEnvelopeValue()
+        # FIXME: update completion model on new envelopes
+        self.setupAutoCompletion()
         # FIXME: config or constant
         self.applyRulesAutomatically()
         self.startTimer(60 * 60 * 1000)
+
+    def setupAutoCompletion(self):
+        names = []
+        for envelope in self.__envMgr.envelopes.values():
+            # FIXME: this is a hack to remove weekly envelopes from autocompletion
+            if envelope.name.startswith("Week_"):
+                continue
+            names.append("%" + envelope.name)
+        self.__ui.leExpenseUserInput.setModel(names)
 
     def showCurrentEnvelopeValue(self):
         env = self.__envMgr.currentEnvelope
