@@ -11,6 +11,7 @@ from RulesAppliedManager import RulesAppliedManager
 from PySide.QtGui import QTableWidgetItem, QMessageBox
 from PySide.QtCore import Qt
 
+# FIXME: this should be configured somehow
 DAYS_TO_SHOW_THRESHOLD = 14
 # FIXME: this is hardcoded Leftover envelope ID, this should be done not this way
 LeftoverEnvelopeId = 3
