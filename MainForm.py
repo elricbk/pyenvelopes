@@ -1,14 +1,14 @@
 import logging
 import datetime
 from ui_MainForm import Ui_MainWindow
-from PySide.QtGui import QMainWindow, QApplication
+from PySide.QtGui import QMainWindow, QApplication, QListWidget, QListWidgetItem
 from ExpenseManager import ExpenseManager
 from EnvelopeManager import EnvelopeManager
 from ExpenseRuleManager import ExpenseRuleManager
 from BusinessPlan import BusinessPlan
 from BusinessPlanItem import Frequency, ItemType
 from RulesAppliedManager import RulesAppliedManager
-from PySide.QtGui import QTableWidgetItem, QMessageBox
+from PySide.QtGui import QTableWidgetItem, QMessageBox, QTreeWidgetItem
 from PySide.QtCore import Qt
 
 # FIXME: this should be configured somehow
@@ -32,6 +32,7 @@ class MainForm(QMainWindow):
         self.loadRules()
         self.loadBusinessPlan()
         self.showCurrentEnvelopeValue()
+        self.__ui.twExpenses.setIdToName(self.__envMgr.envNameForId)
         # FIXME: update completion model on new envelopes
         self.setupAutoCompletion()
         # FIXME: config or constant
@@ -112,7 +113,7 @@ class MainForm(QMainWindow):
         self.__ruleMgr.setExpenseManager(self.__expMgr)
 
     def setupExpenseTable(self):
-        self.__ui.tableWidget.setHorizontalHeaderLabels(['Date', 'Value', 'From', 'To', 'Description'])
+        # self.__ui.tableWidget.setHorizontalHeaderLabels(['Date', 'Value', 'From', 'To', 'Description'])
         self.__ui.tableWidget_3.setHorizontalHeaderLabels(['Date', 'Value', 'From', 'To', 'Description'])
 
     def setupEnvelopeTable(self):
@@ -215,14 +216,34 @@ class MainForm(QMainWindow):
         self.loadExpenses()
 
     def loadExpenses(self):
-        self.clearTable(self.__ui.tableWidget)
+        self.__ui.twExpenses.clear()
         now = datetime.datetime.now()
+        dates = {}
         for ex in (e for e in self.__expMgr.expenses if (now - e.date).days < DAYS_TO_SHOW_THRESHOLD):
-            self.addRowForExpense(self.__ui.tableWidget, ex)
-        self.__ui.tableWidget.resizeColumnsToContents()
+            date = ex.date.date()
+            if date in dates:
+                dates[date].append(ex)
+            else:
+                dates[date] = [ex]
+        keys = sorted(dates.keys())
+        for date in keys:
+            topLevelItem = self.getTopLevelItemForDate(self.__ui.twExpenses, date)
+            for ex in dates[date]:
+                self.addItemForExpense(topLevelItem, ex)
+        # Assure that item for today is here and expand it
+        topLevelItem = self.getTopLevelItemForDate(self.__ui.twExpenses, datetime.datetime.now().date())
+        self.__ui.twExpenses.expandItem(topLevelItem)
         # HACK: removes glitch with resizing last column too much (Mac OS 10.7, PySide 1.1)
-        self.__ui.tableWidget.resize(self.__ui.tableWidget.width() - 1, self.__ui.tableWidget.height())
-        self.__ui.tableWidget.resize(self.__ui.tableWidget.width() + 1, self.__ui.tableWidget.height())
+        self.__ui.twExpenses.resize(self.__ui.twExpenses.width() - 1, self.__ui.twExpenses.height())
+        self.__ui.twExpenses.resize(self.__ui.twExpenses.width() + 1, self.__ui.twExpenses.height())
+
+    def addItemForExpense(self, topLevelItem, ex):
+        ex_str = "%-5d %s\n(%s -> %s)" % (ex.value, ex.desc, self.__envMgr.envNameForId(ex.fromId),
+            self.__envMgr.envNameForId(ex.toId))
+        ex_item = QTreeWidgetItem([ex_str])
+        ex_item.setText(0, ex_str)
+        ex_item.setData(0, Qt.UserRole, ex)
+        topLevelItem.insertChild(0, ex_item)
 
     def addRowForExpense(self, tw, ex):
         row = tw.rowCount()
@@ -243,30 +264,59 @@ class MainForm(QMainWindow):
             item.setData(Qt.UserRole, userData)
         return item
 
+    def getTopLevelItemForDate(self, tw, date):
+        """
+        @type tw: QListWidget
+        """
+        for i in range(tw.topLevelItemCount()):
+            item = tw.topLevelItem(i)
+            if item is None:
+                continue
+            item_date = item.data(0, Qt.UserRole)
+            if date == item_date:
+                return item
+        item = QTreeWidgetItem([str(date)])
+        item.setData(0, Qt.UserRole, date)
+        item.setText(0, date.strftime("%A, ") + str(date))
+        # FIXME: do we always need to insert at zero idx?
+        tw.insertTopLevelItem(0, item)
+        return item
+
     def addExpense(self):
         try:
             ex = self.__expMgr.addExpense(self.__ui.leExpenseUserInput.text())
-            self.addRowForExpense(self.__ui.tableWidget, ex)
+            tw = self.__ui.twExpenses
+            exp_date = ex.date.date()
+            topLevelItem = self.getTopLevelItemForDate(tw, exp_date)
+            self.addItemForExpense(topLevelItem, ex)
             self.refreshEnvelopeValues()
             self.__ui.leExpenseUserInput.setText('')
             self.showCurrentEnvelopeValue()
-            self.scrollToLastExpenseRow()
         except Exception as e:
             print(e)
 
     def deleteExpense(self):
-        items = self.__ui.tableWidget.selectedItems()
+        tw = self.__ui.twExpenses
+        items = [i for i in tw.selectedItems() if tw.indexOfTopLevelItem(i) == -1]
         if len(items) > 0:
             res = QMessageBox.question(self, "Confirmation", "Are you sure you want to delete this expense?",
                                        QMessageBox.Ok, QMessageBox.Cancel)
             if res == QMessageBox.Ok:
-                expenses = set(i.data(Qt.UserRole) for i in items)
+                expenses = set(i.data(0, Qt.UserRole) for i in items)
                 for expense in expenses:
                     self.__expMgr.deleteExpense(expense)
                 self.refreshEnvelopeValues()
                 self.showCurrentEnvelopeValue()
-                self.loadExpenses()
-                self.scrollToLastExpenseRow()
+                # FIXME: fix parent's text
+                for item in items:
+                    parent = item.parent()
+                    idx = parent.indexOfChild(item)
+                    parent.takeChild(idx)
+                    if parent.childCount() == 0:
+                        topLevelIdx = tw.indexOfTopLevelItem(parent)
+                        tw.takeTopLevelItem(topLevelIdx)
+                # self.loadExpenses()
+                # self.scrollToLastExpenseRow()
 
     def reloadValues(self):
         self.refreshEnvelopeValues()
@@ -275,7 +325,7 @@ class MainForm(QMainWindow):
         self.scrollToLastExpenseRow()
 
     def scrollToLastExpenseRow(self):
-        tw = self.__ui.tableWidget
+        tw = self.__ui.twExpenses
         item = tw.item(tw.rowCount() - 1, 0)
         tw.scrollToItem(item)
 

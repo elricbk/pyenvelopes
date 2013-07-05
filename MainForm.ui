@@ -67,9 +67,12 @@
          </layout>
         </item>
         <item>
-         <widget class="QTableWidget" name="tableWidget">
+         <widget class="ExpenseTreeWidget" name="twExpenses">
           <property name="editTriggers">
            <set>QAbstractItemView::NoEditTriggers</set>
+          </property>
+          <property name="alternatingRowColors">
+           <bool>false</bool>
           </property>
           <property name="selectionMode">
            <enum>QAbstractItemView::SingleSelection</enum>
@@ -77,26 +80,14 @@
           <property name="selectionBehavior">
            <enum>QAbstractItemView::SelectRows</enum>
           </property>
-          <property name="columnCount">
-           <number>5</number>
-          </property>
-          <attribute name="horizontalHeaderStretchLastSection">
-           <bool>true</bool>
-          </attribute>
-          <attribute name="verticalHeaderVisible">
+          <attribute name="headerVisible">
            <bool>false</bool>
           </attribute>
-          <attribute name="verticalHeaderDefaultSectionSize">
-           <number>19</number>
-          </attribute>
-          <attribute name="verticalHeaderStretchLastSection">
-           <bool>false</bool>
-          </attribute>
-          <column/>
-          <column/>
-          <column/>
-          <column/>
-          <column/>
+          <column>
+           <property name="text">
+            <string notr="true">1</string>
+           </property>
+          </column>
          </widget>
         </item>
         <item>
@@ -362,6 +353,11 @@
    <class>AutoCompleteEdit</class>
    <extends>QLineEdit</extends>
    <header>controls.autocompleteedit.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ExpenseTreeWidget</class>
+   <extends>QTreeWidget</extends>
+   <header>controls.expensetreewidget.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

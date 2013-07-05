@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'MainForm.ui'
 #
-# Created: Wed Jul  3 22:09:37 2013
+# Created: Thu Jul  4 22:03:12 2013
 #      by: pyside-uic 0.2.13 running on PySide 1.1.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -38,19 +38,15 @@ class Ui_MainWindow(object):
         spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.horizontalLayout_8.addItem(spacerItem)
         self.verticalLayout_2.addLayout(self.horizontalLayout_8)
-        self.tableWidget = QtGui.QTableWidget(self.tab)
-        self.tableWidget.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
-        self.tableWidget.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
-        self.tableWidget.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-        self.tableWidget.setColumnCount(5)
-        self.tableWidget.setObjectName("tableWidget")
-        self.tableWidget.setColumnCount(5)
-        self.tableWidget.setRowCount(0)
-        self.tableWidget.horizontalHeader().setStretchLastSection(True)
-        self.tableWidget.verticalHeader().setVisible(False)
-        self.tableWidget.verticalHeader().setDefaultSectionSize(19)
-        self.tableWidget.verticalHeader().setStretchLastSection(False)
-        self.verticalLayout_2.addWidget(self.tableWidget)
+        self.twExpenses = ExpenseTreeWidget(self.tab)
+        self.twExpenses.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+        self.twExpenses.setAlternatingRowColors(False)
+        self.twExpenses.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+        self.twExpenses.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        self.twExpenses.setObjectName("twExpenses")
+        self.twExpenses.headerItem().setText(0, "1")
+        self.twExpenses.header().setVisible(False)
+        self.verticalLayout_2.addWidget(self.twExpenses)
         self.horizontalLayout = QtGui.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.leExpenseUserInput = AutoCompleteEdit(self.tab)
@@ -216,3 +212,4 @@ class Ui_MainWindow(object):
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_4), QtGui.QApplication.translate("MainWindow", "Financial Plan", None, QtGui.QApplication.UnicodeUTF8))
 
 from controls.autocompleteedit import AutoCompleteEdit
+from controls.expensetreewidget import ExpenseTreeWidget
