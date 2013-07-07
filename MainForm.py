@@ -1,15 +1,15 @@
 import logging
 import datetime
-from ui_MainForm import Ui_MainWindow
-from PySide.QtGui import QMainWindow, QApplication, QListWidget, QListWidgetItem
-from ExpenseManager import ExpenseManager
-from EnvelopeManager import EnvelopeManager
-from ExpenseRuleManager import ExpenseRuleManager
-from BusinessPlan import BusinessPlan
-from BusinessPlanItem import Frequency, ItemType
-from RulesAppliedManager import RulesAppliedManager
+
+from PySide.QtGui import QMainWindow, QApplication, QListWidget
 from PySide.QtGui import QTableWidgetItem, QMessageBox, QTreeWidgetItem
 from PySide.QtCore import Qt
+
+from businesslayer.facade import Facade
+from ui_MainForm import Ui_MainWindow
+from businesslayer.BusinessPlan import ItemType
+from businesslayer.BusinessPlanItem import Frequency
+
 
 # FIXME: this should be configured somehow
 DAYS_TO_SHOW_THRESHOLD = 14
@@ -26,13 +26,13 @@ class MainForm(QMainWindow):
         self.setupEnvelopeTable()
         self.setupRulesTable()
         self.setupPlanTable()
-        self.setupManagers()
+        self._facade = Facade()
         self.loadExpenses()
         self.loadEnvelopes()
         self.loadRules()
         self.loadBusinessPlan()
         self.showCurrentEnvelopeValue()
-        self.__ui.twExpenses.setIdToName(self.__envMgr.envNameForId)
+        self.__ui.twExpenses.setIdToName(self._facade.envNameForId)
         # FIXME: update completion model on new envelopes
         self.setupAutoCompletion()
         # FIXME: config or constant
@@ -41,7 +41,7 @@ class MainForm(QMainWindow):
 
     def setupAutoCompletion(self):
         names = []
-        for envelope in self.__envMgr.envelopes.values():
+        for envelope in self._facade.envelopes.values():
             # FIXME: this is a hack to remove weekly envelopes from autocompletion
             if envelope.name.startswith("Week_"):
                 continue
@@ -49,8 +49,8 @@ class MainForm(QMainWindow):
         self.__ui.leExpenseUserInput.setModel(names)
 
     def showCurrentEnvelopeValue(self):
-        env = self.__envMgr.currentEnvelope
-        value = self.__envMgr.envelopeValue(env.id)
+        env = self._facade.currentEnvelope
+        value = self._facade.envelopeValue(env.id)
         msg = "Current envelope ({0}): {1}".format(env.name, value)
         self.__ui.statusbar.showMessage(msg)
 
@@ -59,7 +59,7 @@ class MainForm(QMainWindow):
             # FIXME: there should be transaction here -- all stuff should be done together or not at all
             self.createEnvelopeForNewWeek()
             self.transferAllFromLastWeek()
-            self.__ruleMgr.executeAllRules()
+            self._facade.executeAllRules()
             try:
                 self.markWeekAsRulesApplied()
             except Exception:
@@ -73,44 +73,33 @@ class MainForm(QMainWindow):
         self.applyRulesAutomatically()
 
     def markWeekAsRulesApplied(self):
-        self.__rulesAppliedMgr.markWeekAsRulesApplied(self.__envMgr.currentEnvelope.name)
+        self._facade.markWeekAsRulesApplied(self._facade.currentEnvelope.name)
 
     def transferAllFromLastWeek(self):
-        lwe = self.__envMgr.lastWeekEnvelope
-        logging.debug("Transferring all money (%d) from last week (%s)", self.__envMgr.envelopeValue(lwe.id), lwe.name)
-        self.__expMgr.addExpenseForRule(
-            self.__envMgr.envelopeValue(lwe.id),
+        lwe = self._facade.lastWeekEnvelope
+        logging.debug("Transferring all money (%d) from last week (%s)", self._facade.envelopeValue(lwe.id), lwe.name)
+        self._facade.addExpenseForRule(
+            self._facade.envelopeValue(lwe.id),
             lwe.id,
-            self.__envMgr.currentEnvelope.id,
+            self._facade.currentEnvelope.id,
             "Transfer from previous week"
         )
 
     def needToApplyRules(self):
-        curEnvName = self.__envMgr.currentEnvelope.name
+        curEnvName = self._facade.currentEnvelope.name
         logging.debug("Checking if need to apply rules for envelope %s", curEnvName)
-        shouldApply = not self.__rulesAppliedMgr.rulesAppliedForWeek(curEnvName)
+        shouldApply = not self._facade.rulesAppliedForWeek(curEnvName)
         logging.debug("Rules should be applied: %s", shouldApply)
         return shouldApply
 
     def createEnvelopeForNewWeek(self):
         logging.debug("Creating envelope for current week")
-        self.__expMgr.addExpenseForRule(
-            self.__bp.weeklyEnvelope,
+        self._facade.addExpenseForRule(
+            self._facade.weeklyEnvelope,
             LeftoverEnvelopeId,
-            self.__envMgr.currentEnvelope.id,
+            self._facade.currentEnvelope.id,
             "Automatic creation of weekly envelope"
         )
-
-    def setupManagers(self):
-        self.__expMgr = ExpenseManager()
-        self.__envMgr = EnvelopeManager()
-        self.__ruleMgr = ExpenseRuleManager()
-        self.__bp = BusinessPlan()
-        self.__rulesAppliedMgr = RulesAppliedManager()
-
-        self.__expMgr.setEnvelopeManager(self.__envMgr)
-        self.__envMgr.setExpenseManager(self.__expMgr)
-        self.__ruleMgr.setExpenseManager(self.__expMgr)
 
     def setupExpenseTable(self):
         # self.__ui.tableWidget.setHorizontalHeaderLabels(['Date', 'Value', 'From', 'To', 'Description'])
@@ -137,7 +126,7 @@ class MainForm(QMainWindow):
             cbType = self.__ui.cbItemType
             cbFreq = self.__ui.cbItemFrequency
             parts = self.__ui.leNewBPItem.text().split(' ', 2)
-            item = self.__bp.addItem(cbType.itemData(cbType.currentIndex()), int(parts[0]), parts[1],
+            item = self._facade.addItem(cbType.itemData(cbType.currentIndex()), int(parts[0]), parts[1],
                                      cbFreq.itemData(cbFreq.currentIndex()))
             self.addRowForPlanItem(item)
             self.__ui.leNewBPItem.setText('')
@@ -146,17 +135,17 @@ class MainForm(QMainWindow):
             print(e)
 
     def applyBusinessPlan(self):
-        self.__bp.save()
-        self.__ruleMgr.clearAllRules()
-        for finItem in [i for i in self.__bp.items if i.type == ItemType.Expense]:
+        self._facade.save()
+        self._facade.clearAllRules()
+        for finItem in [i for i in self._facade.items if i.type == ItemType.Expense]:
             try:
-                envId = self.__envMgr.idForEnvName(finItem.name)
+                envId = self._facade.idForEnvName(finItem.name)
             except Exception as e:
                 print(e)
-                envId = self.__envMgr.addEnvelope(finItem.name).id
-            self.__ruleMgr.addRule(finItem.weeklyValue, 3, envId)
+                envId = self._facade.addEnvelope(finItem.name).id
+            self._facade.addRule(finItem.weeklyValue, 3, envId)
         self.loadRules()
-        bp = self.__bp
+        bp = self._facade
         QMessageBox.information(self, "Financial plan saved",
                                 "Weekly income: {0}\nWeekly expense: {1}\nWeekly envelope: {2}".format(
                                     bp.weeklyIncome, bp.weeklyExpense, bp.weeklyEnvelope))
@@ -168,16 +157,16 @@ class MainForm(QMainWindow):
     def loadBusinessPlan(self):
         tw = self.__ui.twBusinessPlan
         self.clearTable(tw)
-        for item in self.__bp.items:
+        for item in self._facade.items:
             self.addRowForPlanItem(item)
         tw.resizeColumnsToContents()
         self.showWeeklyStats()
 
     def showWeeklyStats(self):
         info = "Weekly stats: Income = {0}, Expense = {1}, Envelope = {2}".format(
-            self.__bp.weeklyIncome,
-            self.__bp.weeklyExpense,
-            self.__bp.weeklyEnvelope)
+            self._facade.weeklyIncome,
+            self._facade.weeklyExpense,
+            self._facade.weeklyEnvelope)
         self.__ui.lblWeeklyStats.setText(info)
 
     def addRowForPlanItem(self, item):
@@ -189,7 +178,7 @@ class MainForm(QMainWindow):
         tw.setItem(row, 2, self.itemWithId(item.name, item.id))
         tw.setItem(row, 3, self.itemWithId(Frequency.desc(item.freq), item.id))
         tw.setItem(row, 4, self.itemWithId(str(item.weeklyValue), item.id))
-        for env in self.__envMgr.envelopes.values():
+        for env in self._facade.envelopes.values():
             if env.name == item.name:
                 tw.setItem(row, 5, self.itemWithId('Existing', item.id))
                 return
@@ -199,7 +188,7 @@ class MainForm(QMainWindow):
     def loadRules(self):
         tw = self.__ui.twRules
         self.clearTable(tw)
-        for rule in self.__ruleMgr.rules:
+        for rule in self._facade.rules:
             self.addRowForRule(rule)
         tw.resizeColumnsToContents()
 
@@ -208,18 +197,18 @@ class MainForm(QMainWindow):
         row = tw.rowCount()
         tw.setRowCount(row + 1)
         tw.setItem(row, 0, self.itemWithId(str(rule.amount), rule.id))
-        tw.setItem(row, 1, self.itemWithId(self.__envMgr.envNameForId(rule.fromId), rule.id))
-        tw.setItem(row, 2, self.itemWithId(self.__envMgr.envNameForId(rule.toId), rule.id))
+        tw.setItem(row, 1, self.itemWithId(self._facade.envNameForId(rule.fromId), rule.id))
+        tw.setItem(row, 2, self.itemWithId(self._facade.envNameForId(rule.toId), rule.id))
 
     def applyRules(self):
-        self.__ruleMgr.executeAllRules()
+        self._facade.executeAllRules()
         self.loadExpenses()
 
     def loadExpenses(self):
         self.__ui.twExpenses.clear()
         now = datetime.datetime.now()
         dates = {}
-        for ex in (e for e in self.__expMgr.expenses if (now - e.date).days < DAYS_TO_SHOW_THRESHOLD):
+        for ex in (e for e in self._facade.expenses if (now - e.date).days < DAYS_TO_SHOW_THRESHOLD):
             date = ex.date.date()
             if date in dates:
                 dates[date].append(ex)
@@ -238,8 +227,8 @@ class MainForm(QMainWindow):
         self.__ui.twExpenses.resize(self.__ui.twExpenses.width() + 1, self.__ui.twExpenses.height())
 
     def addItemForExpense(self, topLevelItem, ex):
-        ex_str = "%-5d %s\n(%s -> %s)" % (ex.value, ex.desc, self.__envMgr.envNameForId(ex.fromId),
-            self.__envMgr.envNameForId(ex.toId))
+        ex_str = "%-5d %s\n(%s -> %s)" % (ex.value, ex.desc, self._facade.envNameForId(ex.fromId),
+            self._facade.envNameForId(ex.toId))
         ex_item = QTreeWidgetItem([ex_str])
         ex_item.setText(0, ex_str)
         ex_item.setData(0, Qt.UserRole, ex)
@@ -253,8 +242,8 @@ class MainForm(QMainWindow):
             color = Qt.gray
         tw.setItem(row, 0, self.coloredTableWidgetItem(str(ex.date.date()), color, ex))
         tw.setItem(row, 1, self.coloredTableWidgetItem(str(ex.value), color, ex))
-        tw.setItem(row, 2, self.coloredTableWidgetItem(self.__envMgr.envNameForId(ex.fromId), color, ex))
-        tw.setItem(row, 3, self.coloredTableWidgetItem(self.__envMgr.envNameForId(ex.toId), color, ex))
+        tw.setItem(row, 2, self.coloredTableWidgetItem(self._facade.envNameForId(ex.fromId), color, ex))
+        tw.setItem(row, 3, self.coloredTableWidgetItem(self._facade.envNameForId(ex.toId), color, ex))
         tw.setItem(row, 4, self.coloredTableWidgetItem(ex.desc, color, ex))
 
     def coloredTableWidgetItem(self, text, color, userData=None):
@@ -284,7 +273,7 @@ class MainForm(QMainWindow):
 
     def addExpense(self):
         try:
-            ex = self.__expMgr.addExpense(self.__ui.leExpenseUserInput.text())
+            ex = self._facade.addExpense(self.__ui.leExpenseUserInput.text())
             tw = self.__ui.twExpenses
             exp_date = ex.date.date()
             topLevelItem = self.getTopLevelItemForDate(tw, exp_date)
@@ -304,7 +293,7 @@ class MainForm(QMainWindow):
             if res == QMessageBox.Ok:
                 expenses = set(i.data(0, Qt.UserRole) for i in items)
                 for expense in expenses:
-                    self.__expMgr.deleteExpense(expense)
+                    self._facade.deleteExpense(expense)
                 self.refreshEnvelopeValues()
                 self.showCurrentEnvelopeValue()
                 # FIXME: fix parent's text
@@ -331,12 +320,12 @@ class MainForm(QMainWindow):
 
     def addEnvelope(self):
         env_name = self.__ui.leNewEnvelope.text().strip().lower()
-        if env_name in (v.name.lower() for v in self.__envMgr.envelopes.values()):
+        if env_name in (v.name.lower() for v in self._facade.envelopes.values()):
             QMessageBox.warning(self, "Warning", "Envelope with given name already exists")
             return
 
         try:
-            env = self.__envMgr.addEnvelope(env_name, u'some envelope description here')
+            env = self._facade.addEnvelope(env_name, u'some envelope description here')
             self.addRowForEnvelope(env)
             self.__ui.leNewEnvelope.setText('')
         except Exception as e:
@@ -347,10 +336,10 @@ class MainForm(QMainWindow):
         for row in range(tw.rowCount()):
             item = tw.item(row, 0)
             envId = int(item.data(Qt.UserRole))
-            item.setText(str(self.__envMgr.envelopeValue(envId)))
+            item.setText(str(self._facade.envelopeValue(envId)))
 
     def loadEnvelopes(self):
-        for env in self.__envMgr.envelopes.values():
+        for env in self._facade.envelopes.values():
             self.addRowForEnvelope(env)
         self.__ui.tableWidget_2.resizeColumnsToContents()
 
@@ -358,7 +347,7 @@ class MainForm(QMainWindow):
         tw = self.__ui.tableWidget_2
         row = tw.rowCount()
         tw.setRowCount(row + 1)
-        tw.setItem(row, 0, self.itemWithId(str(self.__envMgr.envelopeValue(env.id)), env.id))
+        tw.setItem(row, 0, self.itemWithId(str(self._facade.envelopeValue(env.id)), env.id))
         tw.setItem(row, 1, self.itemWithId(env.name, env.id))
 
     def itemWithId(self, itemText, itemId):
@@ -373,7 +362,7 @@ class MainForm(QMainWindow):
         tw = self.__ui.tableWidget_3
         tw.clearContents()
         tw.setRowCount(0)
-        for ex in self.__expMgr.expenses:
+        for ex in self._facade.expenses:
             if (ex.fromId == envId) or (ex.toId == envId):
                 self.addRowForExpense(tw, ex)
         tw.resizeColumnsToContents()

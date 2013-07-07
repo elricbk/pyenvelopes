@@ -1,19 +1,14 @@
-from ExpenseRule import ExpenseRule
 import uuid
+import logging
+
 from lxml import etree
 from lxml.builder import E
-import logging
+
+from ExpenseRule import ExpenseRule
 
 
 class ExpenseRuleManager:
     __ruleFileName = 'data/rules.xml'
-    __instance = None
-
-    @classmethod
-    def instance(cls):
-        if ExpenseRuleManager.__instance is None:
-            ExpenseRuleManager.__instance = ExpenseRuleManager()
-        return ExpenseRuleManager.instance
 
     def __init__(self):
         self.__rules = []

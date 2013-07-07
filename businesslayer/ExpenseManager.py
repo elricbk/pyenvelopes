@@ -1,23 +1,18 @@
 # -*- coding: utf8 -*-
-from Expense import Expense
 import datetime
 import re
 import uuid
+import shutil
+
 from lxml.etree import ElementTree
 from lxml import etree
 from lxml.builder import E
-import logging
-import shutil
+
+from Expense import Expense
+
 
 class ExpenseManager:
     __expenseFileName = 'data/expenses.xml'
-    __instance = None
-    
-    @classmethod
-    def instance(cls):
-        if ExpenseManager.__instance is None:
-            ExpenseManager.__instance = ExpenseManager()
-        return ExpenseManager.__instance
 
     def __init__(self):
         self.__expenses = []
@@ -108,6 +103,6 @@ class ExpenseManager:
 
         res = re.match(rgxShort, line, re.U)
         if res:
-            return [res.group(1), res.group(2), '#' + self.__envMgr.currentEnvelope.name, u'%корзина']
+            return [res.group(1), res.group(2), '%' + self.__envMgr.currentEnvelope.name, u'%корзина']
             
         raise Exception('Wrong format')

@@ -1,19 +1,12 @@
-from Envelope import Envelope
 import datetime
+import logging
 from lxml import etree
 from lxml.builder import E
-import logging
+from Envelope import Envelope
 
 
 class EnvelopeManager:
     __envelopeFileName = 'data/envelopes.xml'
-    __instance = None
-
-    @classmethod
-    def instance(cls):
-        if EnvelopeManager.__instance is None:
-            EnvelopeManager.__instance = EnvelopeManager()
-        return EnvelopeManager.__instance
 
     def __init__(self):
         self.__envelopes = {1: Envelope.Income(), 2: Envelope.Expense(), 3: Envelope.Leftover()}
@@ -82,7 +75,7 @@ class EnvelopeManager:
         return value
 
     @staticmethod
-    def weekEnvelopeName(isoDate):
+    def _weekEnvelopeName(isoDate):
         year = isoDate[0]
         weekNum = isoDate[1]
         return "Week_{0}_{1}".format(year, weekNum)
@@ -90,7 +83,7 @@ class EnvelopeManager:
     @property
     def currentEnvelope(self):
         isoDate = datetime.datetime.now().isocalendar()
-        envName = self.weekEnvelopeName(isoDate)
+        envName = self._weekEnvelopeName(isoDate)
         for k, v in self.__envelopes.items():
             if envName == v.name:
                 return v
@@ -100,7 +93,7 @@ class EnvelopeManager:
     @property
     def lastWeekEnvelope(self):
         isoDate = (datetime.datetime.now() - datetime.timedelta(days=7)).isocalendar()
-        envName = self.weekEnvelopeName(isoDate)
+        envName = self._weekEnvelopeName(isoDate)
         for k, v in self.__envelopes.items():
             if envName == v.name:
                 return v
