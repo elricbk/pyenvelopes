@@ -94,12 +94,12 @@ class ExpenseTreeWidget(QTreeWidget):
 
             painter.save()
             # FIXME: normal check for weekly and income envelopes, colors to constants
-            if fromName.startswith("Week_"):
+            if not ex.manual:
+                painter.setBrush(QColor(157, 157, 157))
+            elif fromName.startswith("Week_"):
                 painter.setBrush(Qt.transparent)
             elif fromName.lower() == u"доход" or fromName.lower() == u"income":
                 painter.setBrush(QColor(100, 230, 100))
-            elif not ex.manual:
-                painter.setBrush(QColor(157, 157, 157))
             else:
                 painter.setBrush(QColor(120, 120, 230))
             painter.setPen(Qt.transparent)

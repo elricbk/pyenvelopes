@@ -82,7 +82,7 @@ class MainForm(QMainWindow):
             self.__envMgr.envelopeValue(lwe.id),
             lwe.id,
             self.__envMgr.currentEnvelope.id,
-            "Automatic transfer of money from previous week"
+            "Transfer from previous week"
         )
 
     def needToApplyRules(self):
