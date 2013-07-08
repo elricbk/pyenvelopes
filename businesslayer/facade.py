@@ -2,6 +2,7 @@
 """
 Facade for all business logic in the application, this class should be used from external code
 """
+import logging
 
 from ExpenseManager import ExpenseManager
 from EnvelopeManager import EnvelopeManager
@@ -27,8 +28,17 @@ class Facade(object):
 
     # region Expenses
 
-    def addExpense(self, value, fromId, toId, desc="Automatic expense"):
-        self._expMgr.addExpenseForRule(value, fromId, toId, desc)
+    def addExpense(self, value, fromId, toId, desc="Automatic expense", line='', manual=False):
+        logging.debug(
+            "Facade :: adding expense requested: value=%s, fromId=%s, toId=%s, desc='%s', line='%s', manual='%s'",
+            value,
+            fromId,
+            toId,
+            desc,
+            line,
+            manual
+        )
+        return self._expMgr.addExpense(value, fromId, toId, desc, line, manual)
 
     def deleteExpense(self, expense):
         self._expMgr.deleteExpense(expense)
@@ -61,13 +71,18 @@ class Facade(object):
         return self._envMgr.lastWeekEnvelope
 
     def envelopeValue(self, envId):
-        self._envMgr.envelopeValue(envId)
+        logging.debug("Facade :: envelope value requested for id: %s", envId)
+        return self._envMgr.envelopeValue(envId)
 
     def envNameForId(self, envId):
-        self._envMgr.envNameForId(envId)
+        logging.debug("Envelope name requested for id: %s", envId)
+        name = self._envMgr.envNameForId(envId)
+        logging.debug("Returning: %s", name)
+        return name
 
     def idForEnvName(self, envName):
-        self._envMgr.idForEnvName(envName)
+        logging.debug("Envelope id requested for name: %s", envName)
+        return self._envMgr.idForEnvName(envName)
 
     #endregion
 
@@ -109,7 +124,6 @@ class Facade(object):
     def clearAllRules(self):
         self._ruleMgr.clearAllRules()
 
-
     def executeRule(self, ruleId):
         self._ruleMgr.executeRule(ruleId)
 
@@ -126,4 +140,4 @@ class Facade(object):
     def markWeekAsRulesApplied(self, weekId):
         self._rulesAppliedMgr.markWeekAsRulesApplied(weekId)
 
-    # endregion
+        # endregion

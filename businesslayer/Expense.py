@@ -22,21 +22,6 @@ class Expense:
         else:
             self.__manual = True
 
-
-    @classmethod
-    def fromSaveLine(cls, line):
-        line = line.strip()
-        parts = line.split('\t')
-        parts[0] = uuid.UUID(parts[0])
-        parts[1] = datetime.datetime(*map(int, re.split('[^\d]', parts[1])[:-1]))
-        ex = Expense(parts)
-        return ex
-
-    def toSaveLine(self):
-        saveLineFmt = u"{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}"
-        return saveLineFmt.format(self.__id, self.__date, self.__value, self.__desc, self.__fromId, self.__toId,
-            self.__line, self.__manual)
-
     @classmethod
     def fromXml(cls, el):
         parts = [

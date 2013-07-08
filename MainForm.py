@@ -1,5 +1,8 @@
+# encoding: utf-8
 import logging
 import datetime
+import re
+from collections import namedtuple
 
 from PySide.QtGui import QMainWindow, QApplication, QListWidget
 from PySide.QtGui import QTableWidgetItem, QMessageBox, QTreeWidgetItem
@@ -77,8 +80,8 @@ class MainForm(QMainWindow):
 
     def transferAllFromLastWeek(self):
         lwe = self._facade.lastWeekEnvelope
-        logging.debug("Transferring all money (%d) from last week (%s)", self._facade.envelopeValue(lwe.id), lwe.name)
-        self._facade.addExpenseForRule(
+        logging.debug("Transferring all money (%s) from last week (%s)", self._facade.envelopeValue(lwe.id), lwe.name)
+        self._facade.addExpense(
             self._facade.envelopeValue(lwe.id),
             lwe.id,
             self._facade.currentEnvelope.id,
@@ -94,7 +97,7 @@ class MainForm(QMainWindow):
 
     def createEnvelopeForNewWeek(self):
         logging.debug("Creating envelope for current week")
-        self._facade.addExpenseForRule(
+        self._facade.addExpense(
             self._facade.weeklyEnvelope,
             LeftoverEnvelopeId,
             self._facade.currentEnvelope.id,
@@ -273,7 +276,11 @@ class MainForm(QMainWindow):
 
     def addExpense(self):
         try:
-            ex = self._facade.addExpense(self.__ui.leExpenseUserInput.text())
+            line = self.__ui.leExpenseUserInput.text()
+            parts = self._parseExpense(line)
+            fromId = self._facade.idForEnvName(parts.fromName[1:])
+            toId = self._facade.idForEnvName(parts.toName[1:])
+            ex = self._facade.addExpense(parts.amount, fromId, toId, parts.desc, line, True)
             tw = self.__ui.twExpenses
             exp_date = ex.date.date()
             topLevelItem = self.getTopLevelItemForDate(tw, exp_date)
@@ -282,7 +289,7 @@ class MainForm(QMainWindow):
             self.__ui.leExpenseUserInput.setText('')
             self.showCurrentEnvelopeValue()
         except Exception as e:
-            print(e)
+            logging.exception("Error adding expense")
 
     def deleteExpense(self):
         tw = self.__ui.twExpenses
@@ -366,3 +373,26 @@ class MainForm(QMainWindow):
             if (ex.fromId == envId) or (ex.toId == envId):
                 self.addRowForExpense(tw, ex)
         tw.resizeColumnsToContents()
+
+    def _parseExpense(self, line):
+        ExpenseLine = namedtuple('ExpenseLine', 'amount, desc, fromName, toName')
+        line = line.strip()
+        rgxShort = '(\d+)\s+(\w.*)'
+        rgxEnvelope = '(\d+)\s+(\w.*)\s+(\%\w+)'
+        rgxFull = '(\d+)\s+(\w.*)\s+(\%\w+)\s+(\%\w+)'
+
+        res = re.match(rgxFull, line, re.U)
+        if res:
+            return ExpenseLine._make([res.group(1), res.group(2), res.group(3), res.group(4)])
+
+        res = re.match(rgxEnvelope, line, re.U)
+        if res:
+            # FIXME: fix hardcoded envelope name
+            return ExpenseLine._make([res.group(1), res.group(2), res.group(3), u'%корзина'])
+
+        res = re.match(rgxShort, line, re.U)
+        if res:
+            # FIXME: fix hardcoded envelope name
+            return ExpenseLine._make([res.group(1), res.group(2), '%' + self._facade.currentEnvelope.name, u'%корзина'])
+
+        raise Exception('Wrong format')

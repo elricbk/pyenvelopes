@@ -26,13 +26,7 @@ class ExpenseManager:
     def setEnvelopeManager(self, envMgr):
         self.__envMgr = envMgr
 
-    def addExpense(self, userInput):
-        ex = self.__fromUserInput(userInput)
-        self.__expenses.append(ex)
-        self.__saveAllExpenses()
-        return ex
-
-    def addExpenseForRule(self, amount, fromId, toId, comment='Automatic expense'):
+    def addExpense(self, amount, fromId, toId, comment='Automatic expense', line='', manual=False):
         data = [
             uuid.uuid4(),
             datetime.datetime.now(),
@@ -40,8 +34,8 @@ class ExpenseManager:
             comment,
             fromId,
             toId,
-            '',
-            False,
+            line,
+            manual
         ]
         ex = Expense(data)
         self.__saveAllExpenses()
@@ -51,20 +45,6 @@ class ExpenseManager:
     def deleteExpense(self, expense):
         self.expenses.remove(expense)
         self.__saveAllExpenses()
-
-    def __fromUserInput(self, line):
-        parts = self.__parseExpense(line)
-        data = [
-            uuid.uuid4(),
-            datetime.datetime.now(),
-            parts[0],
-            parts[1],
-            self.__envMgr.idForEnvName(parts[2][1:]),
-            self.__envMgr.idForEnvName(parts[3][1:]),
-            line,
-            True
-        ]
-        return Expense(data)
 
     def __loadSavedExpenses(self):
         try:
@@ -86,23 +66,3 @@ class ExpenseManager:
         tmpFileName = fname + '.temp'
         ElementTree(doc).write(tmpFileName, encoding="utf-8", pretty_print=True)
         shutil.move(tmpFileName, fname)
-
-    def __parseExpense(self, line):
-        line = line.strip()
-        rgxShort = '(\d+)\s+(\w.*)'
-        rgxEnvelope = '(\d+)\s+(\w.*)\s+(\%\w+)'
-        rgxFull = '(\d+)\s+(\w.*)\s+(\%\w+)\s+(\%\w+)'
-
-        res = re.match(rgxFull, line, re.U)
-        if res:
-            return [res.group(1), res.group(2), res.group(3), res.group(4)]
-
-        res = re.match(rgxEnvelope, line, re.U)
-        if res:
-            return [res.group(1), res.group(2), res.group(3), u'%корзина']
-
-        res = re.match(rgxShort, line, re.U)
-        if res:
-            return [res.group(1), res.group(2), '%' + self.__envMgr.currentEnvelope.name, u'%корзина']
-            
-        raise Exception('Wrong format')
