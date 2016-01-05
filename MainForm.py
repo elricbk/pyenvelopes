@@ -1,3 +1,4 @@
+# encoding: utf-8
 import logging
 import datetime
 from ui_MainForm import Ui_MainWindow
@@ -10,6 +11,7 @@ from BusinessPlanItem import Frequency, ItemType
 from RulesAppliedManager import RulesAppliedManager
 from PySide.QtGui import QTableWidgetItem, QMessageBox, QTreeWidgetItem
 from PySide.QtCore import Qt
+from controls.autocompleteedit import SuggestItem
 
 # FIXME: this should be configured somehow
 DAYS_TO_SHOW_THRESHOLD = 28
@@ -33,20 +35,30 @@ class MainForm(QMainWindow):
         self.loadBusinessPlan()
         self.showCurrentEnvelopeValue()
         self.__ui.twExpenses.setIdToName(self.__envMgr.envNameForId)
-        # FIXME: update completion model on new envelopes
         self.setupAutoCompletion()
         # FIXME: config or constant
         self.applyRulesAutomatically()
         self.startTimer(60 * 60 * 1000)
 
     def setupAutoCompletion(self):
-        names = ["%" + self.__envMgr.currentEnvelope.name]
+        envelopeList = [self.__envMgr.currentEnvelope]
         for envelope in self.__envMgr.envelopes.itervalues():
             # FIXME: this is a hack to remove weekly envelopes from autocompletion
             if envelope.name.startswith("Week_"):
                 continue
-            names.append("%" + envelope.name)
-        self.__ui.leExpenseUserInput.setModel(names)
+            envelopeList.append(envelope)
+        self.__ui.leExpenseUserInput.setModel(
+            self.__envelopeToSuggestItem(e) for e in envelopeList
+        )
+
+    def __envelopeToSuggestItem(self, env):
+        return SuggestItem(
+            displayText=u"%{0} [{1} руб.]".format(
+                env.name,
+                int(self.__envMgr.envelopeValue(env.id))
+            ),
+            suggestText="%" + env.name
+        )
 
     def showCurrentEnvelopeValue(self):
         env = self.__envMgr.currentEnvelope
@@ -339,8 +351,9 @@ class MainForm(QMainWindow):
             env = self.__envMgr.addEnvelope(env_name, u'some envelope description here')
             self.addRowForEnvelope(env)
             self.__ui.leNewEnvelope.setText('')
+            self.setupAutoCompletion()
         except Exception as e:
-            print(e)
+            logging.exception("Error while adding envelope")
 
     def refreshEnvelopeValues(self):
         tw = self.__ui.tableWidget_2
@@ -348,6 +361,7 @@ class MainForm(QMainWindow):
             item = tw.item(row, 0)
             envId = int(item.data(Qt.UserRole))
             item.setText(str(self.__envMgr.envelopeValue(envId)))
+        self.setupAutoCompletion()
 
     def loadEnvelopes(self):
         for env in self.__envMgr.envelopes.values():

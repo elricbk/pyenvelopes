@@ -6,7 +6,24 @@ Found here: http://blog.elentok.com/2011/08/autocomplete-textbox-for-multiple.ht
 """
 
 from PySide import QtCore, QtGui
+import collections
 
+SuggestItem = collections.namedtuple('SuggestItem', 'displayText,suggestText')
+
+class SuggestItemListModel(QtCore.QAbstractListModel):
+    def __init__(self, suggestItemList):
+        super(SuggestItemListModel, self).__init__()
+        self.__suggestItemList = list(suggestItemList)
+
+    def rowCount(self, parent):
+        return len(self.__suggestItemList)
+
+    def data(self, modelIndex, role):
+        if role == QtCore.Qt.DisplayRole:
+            return self.__suggestItemList[modelIndex.row()].displayText
+        elif role == QtCore.Qt.EditRole:
+            return self.__suggestItemList[modelIndex.row()].suggestText
+        return None
 
 class AutoCompleteEdit(QtGui.QLineEdit):
     def __init__(self, model, separator=' ', addSpaceAfterCompleting=True):
@@ -27,9 +44,9 @@ class AutoCompleteEdit(QtGui.QLineEdit):
                               QtCore.Qt.Key_Escape,
                               QtCore.Qt.Key_Tab]
 
-    def setModel(self, model):
+    def setModel(self, suggestItemList):
         """ Set model for completion """
-        self._completer.setModel(QtGui.QStringListModel(model))
+        self._completer.setModel(SuggestItemListModel(suggestItemList))
 
     def _insertCompletion(self, completion):
         """
