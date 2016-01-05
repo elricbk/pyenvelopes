@@ -11,11 +11,13 @@ from PySide import QtCore, QtGui
 class AutoCompleteEdit(QtGui.QLineEdit):
     def __init__(self, model, separator=' ', addSpaceAfterCompleting=True):
         super(AutoCompleteEdit, self).__init__()
+        self.setAttribute(QtCore.Qt.WA_InputMethodEnabled, False)
         self._separator = separator
         self._addSpaceAfterCompleting = addSpaceAfterCompleting
         self._completer = QtGui.QCompleter(model)
         self._completer.setWidget(self)
         self._completer.setCaseSensitivity(QtCore.Qt.CaseInsensitive)
+        self._completer.popup().setAttribute(QtCore.Qt.WA_InputMethodEnabled, False)
         self.connect(
             self._completer,
             QtCore.SIGNAL('activated(QString)'),
@@ -62,7 +64,6 @@ class AutoCompleteEdit(QtGui.QLineEdit):
             self._completer.complete()
         if len(completionPrefix) == 0:
             self._completer.popup().hide()
-
 
     def _updateCompleterPopupItems(self, completionPrefix):
         """
