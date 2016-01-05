@@ -40,8 +40,8 @@ class MainForm(QMainWindow):
         self.startTimer(60 * 60 * 1000)
 
     def setupAutoCompletion(self):
-        names = []
-        for envelope in self.__envMgr.envelopes.values():
+        names = ["%" + self.__envMgr.currentEnvelope.name]
+        for envelope in self.__envMgr.envelopes.itervalues():
             # FIXME: this is a hack to remove weekly envelopes from autocompletion
             if envelope.name.startswith("Week_"):
                 continue
