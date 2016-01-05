@@ -4,6 +4,39 @@ from lxml import etree
 from lxml.builder import E
 import logging
 
+__MAX_WEEKLY_ENVELOPES = 4
+
+def __tryInt(s):
+    try:
+        return int(s)
+    except Exception:
+        return None
+
+def __tryParseWeeklyEnvelope(envelope):
+    name_parts = envelope.name.split('_')
+    if len(name_parts) != 3:
+        return (None, None)
+    if name_parts[0] != 'Week':
+        return (None, None)
+
+    year = __tryInt(name_parts[1])
+    week = __tryInt(name_parts[2])
+
+    return (year, week)
+
+def filterWeeklyEnvelopes(envelopes):
+    result = {}
+    weeklyEnvelopeList = []
+    for envelope in envelopes.itervalues():
+        year, week = __tryParseWeeklyEnvelope(envelope)
+        if year is None or week is None:
+           result[envelope.id] = envelope
+        else:
+          weeklyEnvelopeList.append((year, week, envelope))
+    weeklyEnvelopeList.sort(reverse=True)
+    for _, _, envelope in weeklyEnvelopeList[:__MAX_WEEKLY_ENVELOPES]:
+        result[envelope.id] = envelope
+    return result
 
 class EnvelopeManager:
     __envelopeFileName = 'data/envelopes.xml'
@@ -56,7 +89,7 @@ class EnvelopeManager:
 
     @property
     def envelopes(self):
-        return self.__envelopes
+        return filterWeeklyEnvelopes(self.__envelopes)
 
     def markEnvelopeAsArchive(self, envId):
         pass
