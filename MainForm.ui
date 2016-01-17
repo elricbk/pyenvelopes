@@ -29,13 +29,6 @@
          <number>-1</number>
         </property>
         <item>
-         <widget class="QLabel" name="label">
-          <property name="text">
-           <string>Expenses</string>
-          </property>
-         </widget>
-        </item>
-        <item>
          <layout class="QHBoxLayout" name="horizontalLayout_8">
           <item>
            <widget class="QPushButton" name="pbDeleteExpense">
@@ -116,13 +109,6 @@
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_3">
         <item>
-         <widget class="QLabel" name="label_2">
-          <property name="text">
-           <string>Envelopes</string>
-          </property>
-         </widget>
-        </item>
-        <item>
          <layout class="QHBoxLayout" name="horizontalLayout_2">
           <item>
            <widget class="QLineEdit" name="leNewEnvelope">
@@ -200,13 +186,6 @@
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_4">
         <item>
-         <widget class="QLabel" name="lblRules">
-          <property name="text">
-           <string>Rules:</string>
-          </property>
-         </widget>
-        </item>
-        <item>
          <widget class="QTableWidget" name="twRules">
           <property name="columnCount">
            <number>3</number>
@@ -256,13 +235,6 @@
         <string>Financial Plan</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_5">
-        <item>
-         <widget class="QLabel" name="lblBusinessPlan">
-          <property name="text">
-           <string>Business plan:</string>
-          </property>
-         </widget>
-        </item>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_7">
           <item>

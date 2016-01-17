@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'MainForm.ui'
 #
-# Created: Sat Jul  6 00:30:37 2013
-#      by: pyside-uic 0.2.13 running on PySide 1.1.1
+# Created: Sun Jan 17 22:30:28 2016
+#      by: pyside-uic 0.2.15 running on PySide 1.2.4
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -24,9 +24,6 @@ class Ui_MainWindow(object):
         self.verticalLayout_2 = QtGui.QVBoxLayout(self.tab)
         self.verticalLayout_2.setSpacing(-1)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
-        self.label = QtGui.QLabel(self.tab)
-        self.label.setObjectName("label")
-        self.verticalLayout_2.addWidget(self.label)
         self.horizontalLayout_8 = QtGui.QHBoxLayout()
         self.horizontalLayout_8.setObjectName("horizontalLayout_8")
         self.pbDeleteExpense = QtGui.QPushButton(self.tab)
@@ -61,9 +58,6 @@ class Ui_MainWindow(object):
         self.tab_2.setObjectName("tab_2")
         self.verticalLayout_3 = QtGui.QVBoxLayout(self.tab_2)
         self.verticalLayout_3.setObjectName("verticalLayout_3")
-        self.label_2 = QtGui.QLabel(self.tab_2)
-        self.label_2.setObjectName("label_2")
-        self.verticalLayout_3.addWidget(self.label_2)
         self.horizontalLayout_2 = QtGui.QHBoxLayout()
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
         self.leNewEnvelope = QtGui.QLineEdit(self.tab_2)
@@ -101,9 +95,6 @@ class Ui_MainWindow(object):
         self.tab_3.setObjectName("tab_3")
         self.verticalLayout_4 = QtGui.QVBoxLayout(self.tab_3)
         self.verticalLayout_4.setObjectName("verticalLayout_4")
-        self.lblRules = QtGui.QLabel(self.tab_3)
-        self.lblRules.setObjectName("lblRules")
-        self.verticalLayout_4.addWidget(self.lblRules)
         self.twRules = QtGui.QTableWidget(self.tab_3)
         self.twRules.setColumnCount(3)
         self.twRules.setObjectName("twRules")
@@ -126,9 +117,6 @@ class Ui_MainWindow(object):
         self.tab_4.setObjectName("tab_4")
         self.verticalLayout_5 = QtGui.QVBoxLayout(self.tab_4)
         self.verticalLayout_5.setObjectName("verticalLayout_5")
-        self.lblBusinessPlan = QtGui.QLabel(self.tab_4)
-        self.lblBusinessPlan.setObjectName("lblBusinessPlan")
-        self.verticalLayout_5.addWidget(self.lblBusinessPlan)
         self.horizontalLayout_7 = QtGui.QHBoxLayout()
         self.horizontalLayout_7.setObjectName("horizontalLayout_7")
         self.lblWeeklyStats = QtGui.QLabel(self.tab_4)
@@ -191,21 +179,17 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QtGui.QApplication.translate("MainWindow", "Envelopes", None, QtGui.QApplication.UnicodeUTF8))
-        self.label.setText(QtGui.QApplication.translate("MainWindow", "Expenses", None, QtGui.QApplication.UnicodeUTF8))
         self.pbDeleteExpense.setText(QtGui.QApplication.translate("MainWindow", "Delete Expense", None, QtGui.QApplication.UnicodeUTF8))
         self.pbReload.setText(QtGui.QApplication.translate("MainWindow", "Reload", None, QtGui.QApplication.UnicodeUTF8))
         self.leExpenseUserInput.setPlaceholderText(QtGui.QApplication.translate("MainWindow", "Enter new expense here", None, QtGui.QApplication.UnicodeUTF8))
         self.btnAddExpense.setText(QtGui.QApplication.translate("MainWindow", "Add expense", None, QtGui.QApplication.UnicodeUTF8))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), QtGui.QApplication.translate("MainWindow", "Expenses", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_2.setText(QtGui.QApplication.translate("MainWindow", "Envelopes", None, QtGui.QApplication.UnicodeUTF8))
         self.leNewEnvelope.setPlaceholderText(QtGui.QApplication.translate("MainWindow", "Enter name for new envelope here", None, QtGui.QApplication.UnicodeUTF8))
         self.btnAddEnvelope.setText(QtGui.QApplication.translate("MainWindow", "New envelope", None, QtGui.QApplication.UnicodeUTF8))
         self.label_3.setText(QtGui.QApplication.translate("MainWindow", "Expenses for selected envelope:", None, QtGui.QApplication.UnicodeUTF8))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), QtGui.QApplication.translate("MainWindow", "Envelopes", None, QtGui.QApplication.UnicodeUTF8))
-        self.lblRules.setText(QtGui.QApplication.translate("MainWindow", "Rules:", None, QtGui.QApplication.UnicodeUTF8))
         self.btnApplyRules.setText(QtGui.QApplication.translate("MainWindow", "Apply rules", None, QtGui.QApplication.UnicodeUTF8))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3), QtGui.QApplication.translate("MainWindow", "Rules", None, QtGui.QApplication.UnicodeUTF8))
-        self.lblBusinessPlan.setText(QtGui.QApplication.translate("MainWindow", "Business plan:", None, QtGui.QApplication.UnicodeUTF8))
         self.lblWeeklyStats.setText(QtGui.QApplication.translate("MainWindow", "Weekly stats:", None, QtGui.QApplication.UnicodeUTF8))
         self.pbAddBPItem.setText(QtGui.QApplication.translate("MainWindow", "Add item", None, QtGui.QApplication.UnicodeUTF8))
         self.pbApplyPlan.setText(QtGui.QApplication.translate("MainWindow", "Apply plan", None, QtGui.QApplication.UnicodeUTF8))
