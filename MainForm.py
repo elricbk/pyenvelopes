@@ -242,6 +242,9 @@ class MainForm(QMainWindow):
             topLevelItem = self.getTopLevelItemForDate(self.__ui.twExpenses, date)
             for ex in dates[date]:
                 self.addItemForExpense(topLevelItem, ex)
+        self.expandTodayTopLevelItem()
+
+    def expandTodayTopLevelItem(self):
         # Assure that item for today is here and expand it
         topLevelItem = self.getTopLevelItemForDate(self.__ui.twExpenses, datetime.datetime.now().date())
         self.__ui.twExpenses.expandItem(topLevelItem)
@@ -304,6 +307,7 @@ class MainForm(QMainWindow):
             self.refreshEnvelopeValues()
             self.__ui.leExpenseUserInput.setText('')
             self.showCurrentEnvelopeValue()
+            self.expandTodayTopLevelItem()
         except Exception as e:
             print(e)
 
