@@ -63,7 +63,7 @@ class MainForm(QMainWindow):
     def showCurrentEnvelopeValue(self):
         env = self.__envMgr.currentEnvelope
         value = self.__envMgr.envelopeValue(env.id)
-        msg = "Current envelope ({0}): {1}".format(env.name, value)
+        msg = u"Current envelope ({0}): {1}".format(env.name, str(int(value)) + u" ₽")
         self.__ui.statusbar.showMessage(msg)
 
     def applyRulesAutomatically(self):
