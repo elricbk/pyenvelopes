@@ -292,7 +292,7 @@ class MainForm(QMainWindow):
                 return item
         item = QTreeWidgetItem([str(date)])
         item.setData(0, Qt.UserRole, date)
-        item.setText(0, date.strftime("%A, ") + str(date))
+        item.setText(0, (date.strftime("%A, %-d %B")).decode('utf-8'))
         # FIXME: do we always need to insert at zero idx?
         tw.insertTopLevelItem(0, item)
         return item
