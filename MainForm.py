@@ -18,6 +18,8 @@ DAYS_TO_SHOW_THRESHOLD = 28
 # FIXME: this is hardcoded Leftover envelope ID, this should be done not this way
 LeftoverEnvelopeId = 3
 
+# FIXME: adding ruble symbol here make details table go slow
+def formatValue(value): return str(int(value))
 
 class MainForm(QMainWindow):
     def __init__(self, obj=None):
@@ -63,7 +65,7 @@ class MainForm(QMainWindow):
     def showCurrentEnvelopeValue(self):
         env = self.__envMgr.currentEnvelope
         value = self.__envMgr.envelopeValue(env.id)
-        msg = u"Current envelope ({0}): {1}".format(env.name, str(int(value)) + u" ₽")
+        msg = u"Current envelope ({0}): {1}".format(env.name, formatValue(value))
         self.__ui.statusbar.showMessage(msg)
 
     def applyRulesAutomatically(self):
@@ -125,7 +127,6 @@ class MainForm(QMainWindow):
         self.__ruleMgr.setExpenseManager(self.__expMgr)
 
     def setupExpenseTable(self):
-        # self.__ui.tableWidget.setHorizontalHeaderLabels(['Date', 'Value', 'From', 'To', 'Description'])
         self.__ui.tableWidget_3.setHorizontalHeaderLabels(['Date', 'Value', 'From', 'To', 'Description'])
 
     def setupEnvelopeTable(self):
@@ -263,17 +264,17 @@ class MainForm(QMainWindow):
     def addRowForExpense(self, tw, ex):
         row = tw.rowCount()
         tw.setRowCount(row + 1)
-        color = Qt.black
-        if not ex.manual:
-            color = Qt.gray
+        color = Qt.black if ex.manual else Qt.gray
+        value = formatValue(ex.value)
         tw.setItem(row, 0, self.coloredTableWidgetItem(str(ex.date.date()), color, ex))
-        tw.setItem(row, 1, self.coloredTableWidgetItem(str(ex.value), color, ex))
+        tw.setItem(row, 1, self.coloredTableWidgetItem(value, color, ex))
         tw.setItem(row, 2, self.coloredTableWidgetItem(self.__envMgr.envNameForId(ex.fromId), color, ex))
         tw.setItem(row, 3, self.coloredTableWidgetItem(self.__envMgr.envNameForId(ex.toId), color, ex))
         tw.setItem(row, 4, self.coloredTableWidgetItem(ex.desc, color, ex))
 
     def coloredTableWidgetItem(self, text, color, userData=None):
         item = QTableWidgetItem(text)
+        item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsSelectable)
         item.setForeground(color)
         if userData:
             item.setData(Qt.UserRole, userData)
@@ -389,9 +390,12 @@ class MainForm(QMainWindow):
 
     def fillDetailTable(self, envId):
         tw = self.__ui.tableWidget_3
+        tw.setSortingEnabled(False)
         tw.clearContents()
         tw.setRowCount(0)
         for ex in self.__expMgr.expenses:
             if (ex.fromId == envId) or (ex.toId == envId):
                 self.addRowForExpense(tw, ex)
+        tw.setSortingEnabled(True)
+        tw.sortByColumn(0, Qt.DescendingOrder)
         tw.resizeColumnsToContents()
