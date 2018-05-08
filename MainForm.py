@@ -53,7 +53,7 @@ class MainForm(QMainWindow):
 
     def __envelopeToSuggestItem(self, env):
         return SuggestItem(
-            displayText=u"%{0} [{1} руб.]".format(
+            displayText=u"%{0} [{1} ₽]".format(
                 env.name,
                 int(self.__envMgr.envelopeValue(env.id))
             ),
