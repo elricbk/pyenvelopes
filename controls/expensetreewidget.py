@@ -124,7 +124,7 @@ class ExpenseTreeWidget(QTreeWidget):
         painter.save()
         painter.setFont(font)
         painter.drawText(rect.adjusted(rect.width() / 2, 0, -5, 0), Qt.AlignRight | Qt.AlignVCenter,
-                         str(int(ex.value)) + u" руб.")
+                         str(int(ex.value)) + u" ₽")
         painter.restore()
 
     def _getSumForDay(self, index):
@@ -147,7 +147,7 @@ class ExpenseTreeWidget(QTreeWidget):
                 sumForDay += expense.value
             idx += 1
             child = index.child(idx, 0)
-        return str(int(sumForDay)) + u" руб."
+        return str(int(sumForDay)) + u" ₽"
 
     def drawRow(self, painter, option, index):
         """
