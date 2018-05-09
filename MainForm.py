@@ -19,7 +19,21 @@ DAYS_TO_SHOW_THRESHOLD = 28
 LeftoverEnvelopeId = 3
 
 # FIXME: adding ruble symbol here make details table go slow
-def formatValue(value): return str(int(value))
+def formatValue(value, addCurrency=False):
+    result = str(int(value))
+    if addCurrency:
+        result += u" ₽"
+    return result
+
+def resizeColumnsToContents(tw):
+    """
+    @type tw: QTableWidget
+    """
+    # Workaround for https://bugreports.qt.io/browse/QTBUG-9352
+    tw.setVisible(False)
+    tw.resizeColumnsToContents()
+    tw.horizontalHeader().setStretchLastSection(True)
+    tw.setVisible(True)
 
 class MainForm(QMainWindow):
     def __init__(self, obj=None):
@@ -63,10 +77,13 @@ class MainForm(QMainWindow):
         )
 
     def showCurrentEnvelopeValue(self):
+        FORMAT_MESSAGE = u"Current envelope ({0}): {1}"
         env = self.__envMgr.currentEnvelope
-        value = self.__envMgr.envelopeValue(env.id)
-        msg = u"Current envelope ({0}): {1}".format(env.name, formatValue(value))
-        self.__ui.statusbar.showMessage(msg)
+        value = formatValue(
+            self.__envMgr.envelopeValue(env.id),
+            addCurrency=True
+        )
+        self.__ui.statusbar.showMessage(FORMAT_MESSAGE.format(env.name, value))
 
     def applyRulesAutomatically(self):
         if self.needToApplyRules():
@@ -183,25 +200,28 @@ class MainForm(QMainWindow):
         self.clearTable(tw)
         for item in self.__bp.items:
             self.addRowForPlanItem(item)
-        tw.resizeColumnsToContents()
+        resizeColumnsToContents(tw)
         self.showWeeklyStats()
 
     def showWeeklyStats(self):
-        info = "Weekly stats: Income = {0}, Expense = {1}, Envelope = {2}".format(
-            self.__bp.weeklyIncome,
-            self.__bp.weeklyExpense,
-            self.__bp.weeklyEnvelope)
-        self.__ui.lblWeeklyStats.setText(info)
+        FORMAT_STRING = u"Weekly stats: Income = {0}, Expense = {1}, Envelope = {2}"
+        self.__ui.lblWeeklyStats.setText(FORMAT_STRING.format(
+            formatValue(self.__bp.weeklyIncome, addCurrency=True),
+            formatValue(self.__bp.weeklyExpense, addCurrency=True),
+            formatValue(self.__bp.weeklyEnvelope, addCurrency=True)
+        ))
 
     def addRowForPlanItem(self, item):
         tw = self.__ui.twBusinessPlan
         row = tw.rowCount()
         tw.setRowCount(row + 1)
+        amount = formatValue(item.amount, addCurrency=True)
+        weeklyValue = formatValue(item.weeklyValue, addCurrency=True)
         tw.setItem(row, 0, self.itemWithId(ItemType.desc(item.type), item.id))
-        tw.setItem(row, 1, self.itemWithId(str(item.amount), item.id))
+        tw.setItem(row, 1, self.itemWithId(amount, item.id))
         tw.setItem(row, 2, self.itemWithId(item.name, item.id))
         tw.setItem(row, 3, self.itemWithId(Frequency.desc(item.freq), item.id))
-        tw.setItem(row, 4, self.itemWithId(str(item.weeklyValue), item.id))
+        tw.setItem(row, 4, self.itemWithId(weeklyValue, item.id))
         for env in self.__envMgr.envelopes.values():
             if env.name == item.name:
                 tw.setItem(row, 5, self.itemWithId('Existing', item.id))
@@ -214,7 +234,7 @@ class MainForm(QMainWindow):
         self.clearTable(tw)
         for rule in self.__ruleMgr.rules:
             self.addRowForRule(rule)
-        tw.resizeColumnsToContents()
+        resizeColumnsToContents(tw)
 
     def addRowForRule(self, rule):
         tw = self.__ui.twRules
@@ -371,13 +391,14 @@ class MainForm(QMainWindow):
     def loadEnvelopes(self):
         for env in self.__envMgr.envelopes.values():
             self.addRowForEnvelope(env)
-        self.__ui.tableWidget_2.resizeColumnsToContents()
+        resizeColumnsToContents(self.__ui.tableWidget_2)
 
     def addRowForEnvelope(self, env):
         tw = self.__ui.tableWidget_2
         row = tw.rowCount()
         tw.setRowCount(row + 1)
-        tw.setItem(row, 0, self.itemWithId(str(self.__envMgr.envelopeValue(env.id)), env.id))
+        value = formatValue(self.__envMgr.envelopeValue(env.id))
+        tw.setItem(row, 0, self.itemWithId(value, env.id))
         tw.setItem(row, 1, self.itemWithId(env.name, env.id))
 
     def itemWithId(self, itemText, itemId):
@@ -398,4 +419,4 @@ class MainForm(QMainWindow):
                 self.addRowForExpense(tw, ex)
         tw.setSortingEnabled(True)
         tw.sortByColumn(0, Qt.DescendingOrder)
-        tw.resizeColumnsToContents()
+        resizeColumnsToContents(tw)
