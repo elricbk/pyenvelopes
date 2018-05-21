@@ -49,8 +49,8 @@ class ExpenseManager:
             False,
         ]
         ex = Expense(data)
-        self.__saveAllExpenses()
         self.__expenses.append(ex)
+        self.__saveAllExpenses()
         return ex
 
     def deleteExpense(self, expense):
