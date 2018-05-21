@@ -55,6 +55,7 @@ class MainForm(QMainWindow):
         # FIXME: config or constant
         self.applyRulesAutomatically()
         self.startTimer(60 * 60 * 1000)
+        self.raise_()
 
     def setupAutoCompletion(self):
         envelopeList = [self.__envMgr.currentEnvelope]
@@ -69,7 +70,7 @@ class MainForm(QMainWindow):
 
     def __envelopeToSuggestItem(self, env):
         return SuggestItem(
-            displayText=u"%{0} [{1} ₽]".format(
+            displayText=u"%{0} [{1} руб.]".format(
                 env.name,
                 int(self.__envMgr.envelopeValue(env.id))
             ),
