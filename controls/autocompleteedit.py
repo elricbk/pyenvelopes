@@ -5,7 +5,7 @@ QLineEdit with autocompletion for given list of words
 Found here: http://blog.elentok.com/2011/08/autocomplete-textbox-for-multiple.html
 """
 
-from PySide import QtCore, QtGui
+from PySide2 import QtCore, QtGui, QtWidgets
 import collections
 
 SuggestItem = collections.namedtuple('SuggestItem', 'displayText,suggestText')
@@ -25,13 +25,13 @@ class SuggestItemListModel(QtCore.QAbstractListModel):
             return self.__suggestItemList[modelIndex.row()].suggestText
         return None
 
-class AutoCompleteEdit(QtGui.QLineEdit):
+class AutoCompleteEdit(QtWidgets.QLineEdit):
     def __init__(self, model, separator=' ', addSpaceAfterCompleting=True):
         super(AutoCompleteEdit, self).__init__()
         self.setAttribute(QtCore.Qt.WA_InputMethodEnabled, False)
         self._separator = separator
         self._addSpaceAfterCompleting = addSpaceAfterCompleting
-        self._completer = QtGui.QCompleter(model)
+        self._completer = QtWidgets.QCompleter(model)
         self._completer.setWidget(self)
         self._completer.setCaseSensitivity(QtCore.Qt.CaseInsensitive)
         self._completer.popup().setAttribute(QtCore.Qt.WA_InputMethodEnabled, False)

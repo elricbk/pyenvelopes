@@ -1,5 +1,5 @@
 from MainForm import MainForm
-from PySide.QtGui import QApplication
+from PySide2.QtWidgets import QApplication
 import sys
 import logging
 

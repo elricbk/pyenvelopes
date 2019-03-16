@@ -2,15 +2,15 @@
 import logging
 import datetime
 from ui_MainForm import Ui_MainWindow
-from PySide.QtGui import QMainWindow, QApplication, QListWidget, QListWidgetItem
+from PySide2.QtWidgets import QMainWindow, QApplication, QListWidget, QListWidgetItem
 from ExpenseManager import ExpenseManager
 from EnvelopeManager import EnvelopeManager
 from ExpenseRuleManager import ExpenseRuleManager
 from BusinessPlan import BusinessPlan
 from BusinessPlanItem import Frequency, ItemType
 from RulesAppliedManager import RulesAppliedManager
-from PySide.QtGui import QTableWidgetItem, QMessageBox, QTreeWidgetItem
-from PySide.QtCore import Qt
+from PySide2.QtWidgets import QTableWidgetItem, QMessageBox, QTreeWidgetItem
+from PySide2.QtCore import Qt
 from controls.autocompleteedit import SuggestItem
 
 # FIXME: this should be configured somehow

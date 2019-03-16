@@ -1,7 +1,8 @@
 # coding=utf-8
 
-from PySide.QtGui import QTreeWidget, QPainter, QStyleOptionViewItemV4, QColor, QStyledItemDelegate, QStyle
-from PySide.QtCore import Qt, QModelIndex, QSize, QPoint, QRect
+from PySide2.QtWidgets import QTreeWidget, QStyleOptionViewItem, QStyledItemDelegate, QStyle
+from PySide2.QtGui import QPainter, QColor
+from PySide2.QtCore import Qt, QModelIndex, QSize, QPoint, QRect
 import logging
 
 LINE_SPACING = 4
@@ -16,7 +17,7 @@ class ExpensesItemDelegate(QStyledItemDelegate):
 
     def sizeHint(self, option, index):
         """
-        @type option: QStyleOptionViewItemV4
+        @type option: QStyleOptionViewItem
         @type index: QModelIndex
         """
         size = self._delegate.sizeHint(option, index)
@@ -55,7 +56,7 @@ class ExpenseTreeWidget(QTreeWidget):
     def _drawLeafRow(self, option, painter, index):
         """
         @type painter: QPainter
-        @type option: QStyleOptionViewItemV4
+        @type option: QStyleOptionViewItem
         @type index: QModelIndex
         """
         rect = option.rect
@@ -152,7 +153,7 @@ class ExpenseTreeWidget(QTreeWidget):
     def drawRow(self, painter, option, index):
         """
         @type painter: QPainter
-        @type option: QStyleOptionViewItemV4
+        @type option: QStyleOptionViewItem
         @type index: QModelIndex
         """
         painter.save()
