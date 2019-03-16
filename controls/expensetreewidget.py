@@ -4,6 +4,7 @@ from PySide2.QtWidgets import QTreeWidget, QStyleOptionViewItem, QStyledItemDele
 from PySide2.QtGui import QPainter, QColor
 from PySide2.QtCore import Qt, QModelIndex, QSize, QPoint, QRect
 import logging
+from utils import formatValue
 
 LINE_SPACING = 4
 MARGIN = 7
@@ -118,14 +119,21 @@ class ExpenseTreeWidget(QTreeWidget):
             painter.setPen(Qt.transparent)
             painter.drawRoundedRect(toRect, 3, 3)
             painter.setPen(Qt.darkGray)
-            painter.drawText(toRect.adjusted(4, 2, -4, -2), Qt.AlignVCenter, toName)
+            painter.drawText(
+                toRect.adjusted(4, 2, -4, -2),
+                Qt.AlignVCenter,
+                toName
+            )
         font = painter.font()
         font.setPixelSize(24)
         font.setBold(True)
         painter.save()
         painter.setFont(font)
-        painter.drawText(rect.adjusted(rect.width() / 2, 0, -5, 0), Qt.AlignRight | Qt.AlignVCenter,
-                         str(int(ex.value)) + u" ₽")
+        painter.drawText(
+            rect.adjusted(rect.width() / 2, 0, -5, 0),
+            Qt.AlignRight | Qt.AlignVCenter,
+            formatValue(ex.value)
+        )
         painter.restore()
 
     def _getSumForDay(self, index):
@@ -148,7 +156,7 @@ class ExpenseTreeWidget(QTreeWidget):
                 sumForDay += expense.value
             idx += 1
             child = index.child(idx, 0)
-        return str(int(sumForDay)) + u" ₽"
+        return formatValue(sumForDay)
 
     def drawRow(self, painter, option, index):
         """

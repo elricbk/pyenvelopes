@@ -12,18 +12,12 @@ from RulesAppliedManager import RulesAppliedManager
 from PySide2.QtWidgets import QTableWidgetItem, QMessageBox, QTreeWidgetItem
 from PySide2.QtCore import Qt
 from controls.autocompleteedit import SuggestItem
+from utils import formatValue
 
 # FIXME: this should be configured somehow
 DAYS_TO_SHOW_THRESHOLD = 28
 # FIXME: this is hardcoded Leftover envelope ID, this should be done not this way
 LeftoverEnvelopeId = 3
-
-# FIXME: adding ruble symbol here make details table go slow
-def formatValue(value, addCurrency=False):
-    result = str(int(value))
-    if addCurrency:
-        result += u" ₽"
-    return result
 
 def resizeColumnsToContents(tw):
     """
@@ -80,10 +74,7 @@ class MainForm(QMainWindow):
     def showCurrentEnvelopeValue(self):
         FORMAT_MESSAGE = u"Current envelope ({0}): {1}"
         env = self.__envMgr.currentEnvelope
-        value = formatValue(
-            self.__envMgr.envelopeValue(env.id),
-            addCurrency=True
-        )
+        value = formatValue(self.__envMgr.envelopeValue(env.id))
         self.__ui.statusbar.showMessage(FORMAT_MESSAGE.format(env.name, value))
 
     def applyRulesAutomatically(self):
@@ -207,17 +198,17 @@ class MainForm(QMainWindow):
     def showWeeklyStats(self):
         FORMAT_STRING = u"Weekly stats: Income = {0}, Expense = {1}, Envelope = {2}"
         self.__ui.lblWeeklyStats.setText(FORMAT_STRING.format(
-            formatValue(self.__bp.weeklyIncome, addCurrency=True),
-            formatValue(self.__bp.weeklyExpense, addCurrency=True),
-            formatValue(self.__bp.weeklyEnvelope, addCurrency=True)
+            formatValue(self.__bp.weeklyIncome),
+            formatValue(self.__bp.weeklyExpense),
+            formatValue(self.__bp.weeklyEnvelope)
         ))
 
     def addRowForPlanItem(self, item):
         tw = self.__ui.twBusinessPlan
         row = tw.rowCount()
         tw.setRowCount(row + 1)
-        amount = formatValue(item.amount, addCurrency=True)
-        weeklyValue = formatValue(item.weeklyValue, addCurrency=True)
+        amount = formatValue(item.amount)
+        weeklyValue = formatValue(item.weeklyValue)
         tw.setItem(row, 0, self.itemWithId(ItemType.desc(item.type), item.id))
         tw.setItem(row, 1, self.itemWithId(amount, item.id))
         tw.setItem(row, 2, self.itemWithId(item.name, item.id))
