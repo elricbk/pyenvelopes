@@ -8,9 +8,14 @@ from lxml import etree
 from lxml.builder import E
 import logging
 import shutil
+import os
 
 class ExpenseManager:
-    __expenseFileName = 'data/expenses.xml'
+    __expenseFileName = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        'data',
+        'expenses.xml'
+    )
     __instance = None
     
     @classmethod

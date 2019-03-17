@@ -3,10 +3,15 @@ import uuid
 from lxml import etree
 from lxml.builder import E
 import logging
+import os
 
 
 class ExpenseRuleManager:
-    __ruleFileName = 'data/rules.xml'
+    __ruleFileName = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        'data',
+        'rules.xml'
+    )
     __instance = None
 
     @classmethod

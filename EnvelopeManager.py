@@ -3,6 +3,7 @@ import datetime
 from lxml import etree
 from lxml.builder import E
 import logging
+import os
 
 __MAX_WEEKLY_ENVELOPES = 4
 
@@ -39,7 +40,11 @@ def filterWeeklyEnvelopes(envelopes):
     return result
 
 class EnvelopeManager:
-    __envelopeFileName = 'data/envelopes.xml'
+    __envelopeFileName = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        'data',
+        'envelopes.xml'
+    )
     __instance = None
 
     @classmethod

@@ -3,10 +3,15 @@ import uuid
 import lxml.etree as etree
 from lxml.builder import E
 import logging
+import os
 
 
 class BusinessPlan:
-    __itemsFileName = 'data/business_plan.xml'
+    __itemsFileName = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        'data',
+        'business_plan.xml'
+    )
 
     def __init__(self):
         self.__items = []
