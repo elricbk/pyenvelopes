@@ -5,11 +5,11 @@ from PySide2.QtGui import QPainter, QColor
 from PySide2.QtCore import Qt, QModelIndex, QSize, QPoint, QRect
 import logging
 from utils import formatValue
+from pastel_colors import PastelColors
 
 LINE_SPACING = 4
 MARGIN = 7
 LEFT_MARGIN = 20
-
 
 class ExpensesItemDelegate(QStyledItemDelegate):
     def __init__(self, delegate):
@@ -82,7 +82,7 @@ class ExpenseTreeWidget(QTreeWidget):
         if self._idToName is not None:
             fromName = self._idToName(ex.fromId)
             fromRect = painter.fontMetrics().boundingRect(fromName)
-            painter.setBrush(Qt.lightGray)
+            painter.setBrush(PastelColors.color_for_string(fromName))
             painter.setPen(Qt.transparent)
             bottomRect = rect.adjusted(LEFT_MARGIN, rect.height() / 2, 0, 0)
             fromRect = fromRect.adjusted(-4, -2, 4, 2)
@@ -116,6 +116,7 @@ class ExpenseTreeWidget(QTreeWidget):
                            bottomRect.top(),
                            toRect.width(),
                            toRect.height())
+            painter.setBrush(PastelColors.color_for_string(toName))
             painter.setPen(Qt.transparent)
             painter.drawRoundedRect(toRect, 3, 3)
             painter.setPen(Qt.darkGray)
