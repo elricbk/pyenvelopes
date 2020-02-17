@@ -36,7 +36,12 @@ class BusinessPlan:
         doc = E.BusinessPlan()
         doc.extend([item.toXml() for item in self.__items])
         # FIXME: should write safely here
-        etree.ElementTree(doc).write(BusinessPlan.__itemsFileName, pretty_print=True)
+        etree.ElementTree(doc).write(
+            BusinessPlan.__itemsFileName,
+            pretty_print=True,
+            xml_declaration=True,
+            encoding='UTF-8'
+        )
 
     def addItem(self, itemType, amount, name, freq):
         try:

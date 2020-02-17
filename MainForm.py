@@ -377,7 +377,7 @@ class MainForm(QMainWindow):
         for row in range(tw.rowCount()):
             item = tw.item(row, 0)
             envId = int(item.data(Qt.UserRole))
-            item.setText(str(self.__envMgr.envelopeValue(envId)))
+            item.setText(formatValue(self.__envMgr.envelopeValue(envId)))
         self.setupAutoCompletion()
 
     def loadEnvelopes(self):
