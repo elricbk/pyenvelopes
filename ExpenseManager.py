@@ -99,9 +99,10 @@ class ExpenseManager:
 
     def __parseExpense(self, line):
         line = line.strip()
-        rgxShort = '(\d+)\s+(\w.*)'
-        rgxEnvelope = '\+?(\d+)\s+(\w.*)\s+(\%\w+)'
-        rgxFull = '(\d+)\s+(\w.*)\s+(\%\w+)\s+(\%\w+)'
+        rgxShort = r'(\d+)\s+(\w.*)'
+        rgxEnvelope = r'\+?(\d+)\s+(\w.*)\s+(\%\S+)'
+        rgxFull = r'(\d+)\s+(\w.*)\s+(\%\S+)\s+(\%\S+)'
+        trashBin = u'%корзина'
 
         res = re.match(rgxFull, line, re.U)
         if res:
@@ -112,10 +113,15 @@ class ExpenseManager:
             if line.startswith('+'):
               return [res.group(1), res.group(2), u'%доход', res.group(3)]
             else:
-              return [res.group(1), res.group(2), res.group(3), u'%корзина']
+              return [res.group(1), res.group(2), res.group(3), trashBin]
 
         res = re.match(rgxShort, line, re.U)
         if res:
-            return [res.group(1), res.group(2), '#' + self.__envMgr.currentEnvelope.name, u'%корзина']
+            return [
+                res.group(1),
+                res.group(2),
+                '#' + self.__envMgr.currentEnvelope.name,
+                trashBin
+            ]
             
         raise Exception('Wrong format')

@@ -6,6 +6,7 @@ from PySide2.QtCore import Qt, QModelIndex, QSize, QPoint, QRect
 import logging
 from utils import formatValue
 from pastel_colors import PastelColors
+import re
 
 LINE_SPACING = 4
 MARGIN = 7
@@ -79,9 +80,17 @@ class ExpenseTreeWidget(QTreeWidget):
         painter.restore()
         painter.setPen(Qt.darkGray)
         painter.setRenderHint(QPainter.Antialiasing)
+        cleanupEmojis = lambda it: re.sub(ur'[\u263a-\U0001f645]', '', fromName)
         if self._idToName is not None:
             fromName = self._idToName(ex.fromId)
-            fromRect = painter.fontMetrics().boundingRect(fromName)
+            fromRectH = painter.fontMetrics().boundingRect(cleanupEmojis(fromName))
+            fromRectW = painter.fontMetrics().boundingRect(fromName)
+            fromRect = QRect(
+                fromRectW.left(),
+                fromRectH.top(),
+                fromRectW.width(),
+                fromRectH.height()
+            )
             painter.setBrush(PastelColors.color_for_string(fromName))
             painter.setPen(Qt.transparent)
             bottomRect = rect.adjusted(LEFT_MARGIN, rect.height() / 2, 0, 0)
@@ -110,7 +119,14 @@ class ExpenseTreeWidget(QTreeWidget):
 
             bottomRect = bottomRect.adjusted(fromRect.width() + MARGIN, 0, 0, 0)
             toName = self._idToName(ex.toId)
-            toRect = painter.fontMetrics().boundingRect(toName)
+            toRectH = painter.fontMetrics().boundingRect(cleanupEmojis(toName))
+            toRectW = painter.fontMetrics().boundingRect(toName)
+            toRect = QRect(
+                toRectW.left(),
+                toRectH.top(),
+                toRectW.width(),
+                toRectH.height()
+            )
             toRect = toRect.adjusted(-4, -2, 4, 2)
             toRect = QRect(bottomRect.left(),
                            bottomRect.top(),
