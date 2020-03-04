@@ -72,7 +72,6 @@ class PastelColors:
         QColor(255, 248, 220), # cornsilk        
         QColor(238, 232, 205), # cornsilk_2      
         QColor(205, 200, 177), # cornsilk_3      
-        QColor(139, 136, 120), # cornsilk_4      
         QColor(255, 255, 240), # ivory           
         QColor(238, 238, 224), # ivory_2         
         QColor(205, 205, 193), # ivory_3         
