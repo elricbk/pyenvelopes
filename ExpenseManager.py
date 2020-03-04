@@ -100,8 +100,8 @@ class ExpenseManager:
     def __parseExpense(self, line):
         line = line.strip()
         rgxShort = r'(\d+)\s+(\w.*)'
-        rgxEnvelope = r'\+?(\d+)\s+(\w.*)\s+(\%\S+)'
-        rgxFull = r'(\d+)\s+(\w.*)\s+(\%\S+)\s+(\%\S+)'
+        rgxEnvelope = r'\+?(\d+)\s+(\w.*)\s+(%\S+)'
+        rgxFull = r'(\d+)\s+(\S.*)\s+(%\S+)\s+(%\S+)'
         trashBin = u'%корзина'
 
         res = re.match(rgxFull, line, re.U)
