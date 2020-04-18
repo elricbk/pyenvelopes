@@ -102,7 +102,7 @@ class ExpenseManager:
         rgxShort = r'(\d+)\s+(\w.*)'
         rgxEnvelope = r'\+?(\d+)\s+(\w.*)\s+(%\S+)'
         rgxFull = r'(\d+)\s+(\S.*)\s+(%\S+)\s+(%\S+)'
-        trashBin = u'%корзина'
+        trashBin = '%корзина'
 
         res = re.match(rgxFull, line, re.U)
         if res:
@@ -111,7 +111,7 @@ class ExpenseManager:
         res = re.match(rgxEnvelope, line, re.U)
         if res:
             if line.startswith('+'):
-              return [res.group(1), res.group(2), u'%доход', res.group(3)]
+              return [res.group(1), res.group(2), '%доход', res.group(3)]
             else:
               return [res.group(1), res.group(2), res.group(3), trashBin]
 

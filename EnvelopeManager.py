@@ -28,7 +28,7 @@ def __tryParseWeeklyEnvelope(envelope):
 def filterWeeklyEnvelopes(envelopes):
     result = {}
     weeklyEnvelopeList = []
-    for envelope in envelopes.itervalues():
+    for envelope in envelopes.values():
         year, week = __tryParseWeeklyEnvelope(envelope)
         if year is None or week is None:
            result[envelope.id] = envelope

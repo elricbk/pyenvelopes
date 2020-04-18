@@ -53,7 +53,7 @@ class MainForm(QMainWindow):
 
     def setupAutoCompletion(self):
         envelopeList = [self.__envMgr.currentEnvelope]
-        for envelope in self.__envMgr.envelopes.itervalues():
+        for envelope in self.__envMgr.envelopes.values():
             # FIXME: this is a hack to remove weekly envelopes from autocompletion
             if envelope.name.startswith("Week_"):
                 continue
@@ -64,7 +64,7 @@ class MainForm(QMainWindow):
 
     def __envelopeToSuggestItem(self, env):
         return SuggestItem(
-            displayText=u"%{0} [{1} руб.]".format(
+            displayText="%{0} [{1} руб.]".format(
                 env.name,
                 int(self.__envMgr.envelopeValue(env.id))
             ),
@@ -72,7 +72,7 @@ class MainForm(QMainWindow):
         )
 
     def showCurrentEnvelopeValue(self):
-        FORMAT_MESSAGE = u"Current envelope ({0}): {1}"
+        FORMAT_MESSAGE = "Current envelope ({0}): {1}"
         env = self.__envMgr.currentEnvelope
         value = formatValue(self.__envMgr.envelopeValue(env.id))
         self.__ui.statusbar.showMessage(FORMAT_MESSAGE.format(env.name, value))
@@ -196,7 +196,7 @@ class MainForm(QMainWindow):
         self.showWeeklyStats()
 
     def showWeeklyStats(self):
-        FORMAT_STRING = u"Weekly stats: Income = {0}, Expense = {1}, Envelope = {2}"
+        FORMAT_STRING = "Weekly stats: Income = {0}, Expense = {1}, Envelope = {2}"
         self.__ui.lblWeeklyStats.setText(FORMAT_STRING.format(
             formatValue(self.__bp.weeklyIncome),
             formatValue(self.__bp.weeklyExpense),
@@ -305,7 +305,7 @@ class MainForm(QMainWindow):
                 return item
         item = QTreeWidgetItem([str(date)])
         item.setData(0, Qt.UserRole, date)
-        item.setText(0, (date.strftime("%A, %-d %B")).decode('utf-8'))
+        item.setText(0, (date.strftime("%A, %-d %B")))
         # FIXME: do we always need to insert at zero idx?
         tw.insertTopLevelItem(0, item)
         return item
@@ -351,7 +351,7 @@ class MainForm(QMainWindow):
         self.refreshEnvelopeValues()
         self.loadExpenses()
         self.showCurrentEnvelopeValue()
-        self.scrollToLastExpenseRow()
+        # self.scrollToLastExpenseRow()
 
     def scrollToLastExpenseRow(self):
         tw = self.__ui.twExpenses
@@ -365,7 +365,7 @@ class MainForm(QMainWindow):
             return
 
         try:
-            env = self.__envMgr.addEnvelope(env_name, u'some envelope description here')
+            env = self.__envMgr.addEnvelope(env_name, 'some envelope description here')
             self.addRowForEnvelope(env)
             self.__ui.leNewEnvelope.setText('')
             self.setupAutoCompletion()

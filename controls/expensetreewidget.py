@@ -5,7 +5,7 @@ from PySide2.QtGui import QPainter, QColor
 from PySide2.QtCore import Qt, QModelIndex, QSize, QPoint, QRect
 import logging
 from utils import formatValue
-from pastel_colors import PastelColors
+from .pastel_colors import PastelColors
 import re
 
 LINE_SPACING = 4
@@ -80,7 +80,7 @@ class ExpenseTreeWidget(QTreeWidget):
         painter.restore()
         painter.setPen(Qt.darkGray)
         painter.setRenderHint(QPainter.Antialiasing)
-        cleanupEmojis = lambda it: re.sub(ur'[\u263a-\U0001f645]', '', fromName)
+        cleanupEmojis = lambda it: re.sub(r'[\u263a-\U0001f645]', '', fromName)
         if self._idToName is not None:
             fromName = self._idToName(ex.fromId)
             fromRectH = painter.fontMetrics().boundingRect(cleanupEmojis(fromName))
@@ -109,7 +109,7 @@ class ExpenseTreeWidget(QTreeWidget):
                 painter.setBrush(QColor(157, 157, 157))
             elif fromName.startswith("Week_"):
                 painter.setBrush(Qt.transparent)
-            elif fromName.lower() == u"доход" or fromName.lower() == u"income":
+            elif fromName.lower() == "доход" or fromName.lower() == "income":
                 painter.setBrush(QColor(100, 230, 100))
             else:
                 painter.setBrush(QColor(120, 120, 230))

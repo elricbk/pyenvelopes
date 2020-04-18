@@ -9,14 +9,14 @@ try:
     expMgr.setEnvelopeManager(envMgr)
     envMgr.printEnvelopes()
 except Exception as e:
-    print e
+    print(e)
 
 while 1:
-    curLine = raw_input().strip()
+    curLine = input().strip()
     if curLine.startswith('env:'):
         try:
             env = curLine.split()[1]
-            print('Envelope value for {0} = {1}'.format(env, envMgr.envelopeValue(envMgr.idForEnvName(env))))
+            print(('Envelope value for {0} = {1}'.format(env, envMgr.envelopeValue(envMgr.idForEnvName(env)))))
             continue
         except Exception as e:
             print(e)

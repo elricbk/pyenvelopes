@@ -33,7 +33,7 @@ class Expense:
         return ex
 
     def toSaveLine(self):
-        saveLineFmt = u"{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}"
+        saveLineFmt = "{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}"
         return saveLineFmt.format(self.__id, self.__date, self.__value, self.__desc, self.__fromId, self.__toId,
             self.__line, self.__manual)
 

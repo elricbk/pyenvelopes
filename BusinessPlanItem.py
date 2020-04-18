@@ -26,13 +26,13 @@ class Frequency:
     Yearly = 7
     ItemsCount = 8
 
-    __desc = { Weekly: u"Every week",
-        OnceInTwoWeeks: u'Once in two weeks',
-        TwiceInMonth: u'Two times per month',
-        Monthly: u'Once a month',
-        Quarterly: u'Once a quarter',
-        HalfYear: u'Once in half a year',
-        Yearly: u'Once a year',
+    __desc = { Weekly: "Every week",
+        OnceInTwoWeeks: 'Once in two weeks',
+        TwiceInMonth: 'Two times per month',
+        Monthly: 'Once a month',
+        Quarterly: 'Once a quarter',
+        HalfYear: 'Once in half a year',
+        Yearly: 'Once a year',
     }
 
     @classmethod
@@ -61,7 +61,7 @@ class BusinessPlanItem:
         self.__freq = freq
 
     def toSaveLine(self):
-        return u'{0}\t{1}\t{2}\t{3}\t{4}'.format(self.__id, self.__type, self.__amount, self.__name, self.__freq)
+        return '{0}\t{1}\t{2}\t{3}\t{4}'.format(self.__id, self.__type, self.__amount, self.__name, self.__freq)
 
     def toXml(self):
         return E.Item(
