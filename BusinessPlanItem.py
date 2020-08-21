@@ -60,9 +60,6 @@ class BusinessPlanItem:
         self.__name = name
         self.__freq = freq
 
-    def toSaveLine(self):
-        return '{0}\t{1}\t{2}\t{3}\t{4}'.format(self.__id, self.__type, self.__amount, self.__name, self.__freq)
-
     def toXml(self):
         return E.Item(
             id=str(self.__id),
@@ -79,11 +76,6 @@ class BusinessPlanItem:
             float(el.get("amount")),
             el.get("name"),
             int(el.get("freq")))
-
-    @classmethod
-    def fromSaveLine(cls, line):
-        parts = line.split('\t')
-        return BusinessPlanItem(uuid.UUID(parts[0]), int(parts[1]), int(parts[2]), parts[3], int(parts[4]))
 
     @property
     def id(self):
