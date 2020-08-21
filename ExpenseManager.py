@@ -1,5 +1,7 @@
 # -*- coding: utf8 -*-
 from Expense import Expense
+from parse_expense import parse_expense
+
 import datetime
 import re
 import uuid
@@ -98,30 +100,13 @@ class ExpenseManager:
         shutil.move(tmpFileName, fname)
 
     def __parseExpense(self, line):
-        line = line.strip()
-        rgxShort = r'(\d+)\s+(\w.*)'
-        rgxEnvelope = r'\+?(\d+)\s+(\w.*)\s+(%\S+)'
-        rgxFull = r'(\d+)\s+(\S.*)\s+(%\S+)\s+(%\S+)'
-        trashBin = '%корзина'
-
-        res = re.match(rgxFull, line, re.U)
-        if res:
-            return [res.group(1), res.group(2), res.group(3), res.group(4)]
-
-        res = re.match(rgxEnvelope, line, re.U)
-        if res:
-            if line.startswith('+'):
-              return [res.group(1), res.group(2), '%доход', res.group(3)]
-            else:
-              return [res.group(1), res.group(2), res.group(3), trashBin]
-
-        res = re.match(rgxShort, line, re.U)
-        if res:
-            return [
-                res.group(1),
-                res.group(2),
-                '#' + self.__envMgr.currentEnvelope.name,
-                trashBin
-            ]
-            
-        raise Exception('Wrong format')
+        expense = parse_expense(line)
+        from_envelope = expense.from_envelope \
+            if expense.from_envelope \
+            else '%' + self.__envMgr.currentEnvelope.name
+        return [
+            expense.amount,
+            expense.comment,
+            from_envelope,
+            expense.to_envelope
+        ]
