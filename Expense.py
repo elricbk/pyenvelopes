@@ -6,21 +6,14 @@ from lxml.builder import E
 
 class Expense:
     def __init__(self, data):
-        #print(data)
         self.__id = data[0]
         self.__date = data[1]
         self.__value = float(data[2])
         self.__desc = data[3]
         self.__fromId = int(data[4])
         self.__toId = int(data[5])
-        if len(data) > 6:
-            self.__line = data[6]
-        else:
-            self.__line = ''
-        if len(data) > 7:
-            self.__manual = data[7]
-        else:
-            self.__manual = True
+        self.__line = data[6] if len(data) > 6 else ''
+        self.__manual = data[7] if len(data) > 7 else True
 
     @classmethod
     def fromXml(cls, el):
