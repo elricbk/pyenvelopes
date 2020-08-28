@@ -47,13 +47,6 @@ class EnvelopeManager:
         'data',
         'envelopes.xml'
     )
-    __instance = None
-
-    @classmethod
-    def instance(cls):
-        if EnvelopeManager.__instance is None:
-            EnvelopeManager.__instance = EnvelopeManager()
-        return EnvelopeManager.__instance
 
     def __init__(self):
         self.__envelopes = {1: Envelope.Income(), 2: Envelope.Expense(), 3: Envelope.Leftover()}

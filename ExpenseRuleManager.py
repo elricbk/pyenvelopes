@@ -1,7 +1,10 @@
 from ExpenseRule import ExpenseRule
+from ExpenseManager import ExpenseManager
+
 import uuid
 from lxml import etree
 from lxml.builder import E
+from typing import List
 import logging
 import os
 
@@ -14,17 +17,14 @@ class ExpenseRuleManager:
     )
     __instance = None
 
-    @classmethod
-    def instance(cls):
-        if ExpenseRuleManager.__instance is None:
-            ExpenseRuleManager.__instance = ExpenseRuleManager()
-        return ExpenseRuleManager.instance
+    __expMgr: ExpenseManager
+    __rules: List[ExpenseRule]
 
     def __init__(self):
         self.__rules = []
         self.__loadSavedRules()
 
-    def setExpenseManager(self, expMgr):
+    def setExpenseManager(self, expMgr: ExpenseManager):
         self.__expMgr = expMgr
 
     @property

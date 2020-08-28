@@ -21,16 +21,9 @@ class ExpenseManager:
         'data',
         'expenses.xml'
     )
-    __instance = None
 
     __expenses: List[Expense]
     __envMgr: EnvelopeManagerFacade
-
-    @classmethod
-    def instance(cls):
-        if ExpenseManager.__instance is None:
-            ExpenseManager.__instance = ExpenseManager()
-        return ExpenseManager.__instance
 
     def __init__(self):
         self.__expenses = []
