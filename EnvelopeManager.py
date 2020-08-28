@@ -1,4 +1,6 @@
 from Envelope import Envelope
+from envelope_manager_facade import EnvelopeManagerFacade
+
 import datetime
 from lxml import etree
 from lxml.builder import E
@@ -99,7 +101,7 @@ class EnvelopeManager:
     def markEnvelopeAsArchive(self, envId):
         pass
 
-    def idForEnvName(self, envName):
+    def idForEnvName(self, envName) -> int:
         #print(u"Searching for envelope '{0}'".format(envName))
         # FIXME: envelope name is not unique, it may lead to problems
         for k, v in self.__envelopes.items():
@@ -152,3 +154,18 @@ class EnvelopeManager:
                 return v
 
         return self.addEnvelope(envName)
+
+class EnvelopeManagerFacadeImpl(EnvelopeManagerFacade):
+    manager: EnvelopeManager
+
+    def __init__(self, manager: EnvelopeManager):
+        self.manager = manager
+
+    def current_envelope_name(self):
+        return self.manager.currentEnvelope.name
+
+    def get_id_for_name(self, name: str) -> int:
+        return self.manager.idForEnvName(name)
+
+def make_facade(manager: EnvelopeManager) -> EnvelopeManagerFacade:
+    return EnvelopeManagerFacadeImpl(manager)

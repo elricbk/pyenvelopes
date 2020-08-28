@@ -10,8 +10,8 @@ class TestParseExpense(unittest.TestCase):
 
         self.assertEqual(result.amount, '42')
         self.assertEqual(result.comment, 'moving money')
-        self.assertEqual(result.from_envelope, '%корзина')
-        self.assertEqual(result.to_envelope, '%доход')
+        self.assertEqual(result.from_envelope, 'корзина')
+        self.assertEqual(result.to_envelope, 'доход')
 
     def test_parse_expense__given_expense_from_envelope__parses_it(self):
         line = '24 spending money %запас'
@@ -20,8 +20,8 @@ class TestParseExpense(unittest.TestCase):
 
         self.assertEqual(result.amount, '24')
         self.assertEqual(result.comment, 'spending money')
-        self.assertEqual(result.from_envelope, '%запас')
-        self.assertEqual(result.to_envelope, '%корзина')
+        self.assertEqual(result.from_envelope, 'запас')
+        self.assertEqual(result.to_envelope, 'корзина')
 
     def test_parse_expense__given_income_to_envelope__parses_it(self):
         line = '+84 getting money %envelope'
@@ -30,8 +30,8 @@ class TestParseExpense(unittest.TestCase):
 
         self.assertEqual(result.amount, '84')
         self.assertEqual(result.comment, 'getting money')
-        self.assertEqual(result.from_envelope, '%доход')
-        self.assertEqual(result.to_envelope, '%envelope')
+        self.assertEqual(result.from_envelope, 'доход')
+        self.assertEqual(result.to_envelope, 'envelope')
 
     def test_parse_expense__given_short_form__parses_it(self):
         line = '42 short form'
@@ -41,7 +41,7 @@ class TestParseExpense(unittest.TestCase):
         self.assertEqual(result.amount, '42')
         self.assertEqual(result.comment, 'short form')
         self.assertIsNone(result.from_envelope)
-        self.assertEqual(result.to_envelope, '%корзина')
+        self.assertEqual(result.to_envelope, 'корзина')
 
     def test_parse_expense__given_unknown_line__throws(self):
         with self.assertRaises(Exception):

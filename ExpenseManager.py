@@ -1,16 +1,19 @@
 # -*- coding: utf8 -*-
 from Expense import Expense
 from parse_expense import parse_expense
+from envelope_manager_facade import EnvelopeManagerFacade
 
-import datetime
-import re
-import uuid
-from lxml.etree import ElementTree
 from lxml import etree
 from lxml.builder import E
+from lxml.etree import ElementTree
+from typing import List
+
+import datetime
 import logging
-import shutil
 import os
+import re
+import shutil
+import uuid
 
 class ExpenseManager:
     __expenseFileName = os.path.join(
@@ -19,7 +22,10 @@ class ExpenseManager:
         'expenses.xml'
     )
     __instance = None
-    
+
+    __expenses: List[Expense]
+    __envMgr: EnvelopeManagerFacade
+
     @classmethod
     def instance(cls):
         if ExpenseManager.__instance is None:
@@ -32,14 +38,26 @@ class ExpenseManager:
         self.__loadSavedExpenses()
 
     @property
-    def expenses(self): 
+    def expenses(self) -> List[Expense]:
         return self.__expenses
 
-    def setEnvelopeManager(self, envMgr):
+    def setEnvelopeManager(self, envMgr: EnvelopeManagerFacade):
         self.__envMgr = envMgr
 
-    def addExpense(self, userInput):
-        ex = self.__fromUserInput(userInput)
+    def addExpense(self, user_input: str) -> Expense:
+        expense = parse_expense(user_input)
+        if expense.from_envelope is None:
+            expense.from_envelope = self.__envMgr.current_envelope_name()
+        ex = Expense([
+            uuid.uuid4(),
+            datetime.datetime.now(),
+            expense.amount,
+            expense.comment,
+            self.__envMgr.get_id_for_name(expense.from_envelope),
+            self.__envMgr.get_id_for_name(expense.to_envelope),
+            user_input,
+            True
+        ])
         self.__expenses.append(ex)
         self.__saveAllExpenses()
         return ex
@@ -64,20 +82,6 @@ class ExpenseManager:
         self.expenses.remove(expense)
         self.__saveAllExpenses()
 
-    def __fromUserInput(self, line):
-        parts = self.__parseExpense(line)
-        data = [
-            uuid.uuid4(),
-            datetime.datetime.now(),
-            parts[0],
-            parts[1],
-            self.__envMgr.idForEnvName(parts[2][1:]),
-            self.__envMgr.idForEnvName(parts[3][1:]),
-            line,
-            True
-        ]
-        return Expense(data)
-
     def __loadSavedExpenses(self):
         try:
             doc = etree.parse(ExpenseManager.__expenseFileName)
@@ -98,15 +102,3 @@ class ExpenseManager:
         tmpFileName = fname + '.temp'
         ElementTree(doc).write(tmpFileName, encoding="utf-8", pretty_print=True)
         shutil.move(tmpFileName, fname)
-
-    def __parseExpense(self, line):
-        expense = parse_expense(line)
-        from_envelope = expense.from_envelope \
-            if expense.from_envelope \
-            else '%' + self.__envMgr.currentEnvelope.name
-        return [
-            expense.amount,
-            expense.comment,
-            from_envelope,
-            expense.to_envelope
-        ]

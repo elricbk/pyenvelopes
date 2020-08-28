@@ -1,16 +1,18 @@
 # encoding: utf-8
 import logging
 import datetime
-from ui_MainForm import Ui_MainWindow
+
 from PySide2.QtWidgets import QMainWindow, QApplication, QListWidget, QListWidgetItem
+from PySide2.QtWidgets import QTableWidgetItem, QMessageBox, QTreeWidgetItem
+from PySide2.QtCore import Qt
+
+from ui_MainForm import Ui_MainWindow
 from ExpenseManager import ExpenseManager
-from EnvelopeManager import EnvelopeManager
+from EnvelopeManager import EnvelopeManager, make_facade
 from ExpenseRuleManager import ExpenseRuleManager
 from BusinessPlan import BusinessPlan
 from BusinessPlanItem import Frequency, ItemType
 from RulesAppliedManager import RulesAppliedManager
-from PySide2.QtWidgets import QTableWidgetItem, QMessageBox, QTreeWidgetItem
-from PySide2.QtCore import Qt
 from controls.autocompleteedit import SuggestItem
 from utils import formatValue
 
@@ -131,7 +133,7 @@ class MainForm(QMainWindow):
         self.__bp = BusinessPlan()
         self.__rulesAppliedMgr = RulesAppliedManager()
 
-        self.__expMgr.setEnvelopeManager(self.__envMgr)
+        self.__expMgr.setEnvelopeManager(make_facade(self.__envMgr))
         self.__envMgr.setExpenseManager(self.__expMgr)
         self.__ruleMgr.setExpenseManager(self.__expMgr)
 
