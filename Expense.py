@@ -1,69 +1,50 @@
-import datetime
-import re
-import uuid
+from __future__ import annotations
+
 from lxml.builder import E
+from lxml.etree import ElementBase
+
+import dataclasses
+import datetime
+import dateutil.parser
+import lxml
+import uuid
 
 
+@dataclasses.dataclass
 class Expense:
-    def __init__(self, data):
-        self.__id = data[0]
-        self.__date = data[1]
-        self.__value = float(data[2])
-        self.__desc = data[3]
-        self.__fromId = int(data[4])
-        self.__toId = int(data[5])
-        self.__line = data[6] if len(data) > 6 else ''
-        self.__manual = data[7] if len(data) > 7 else True
+    id: uuid.UUID
+    date: datetime.datetime
+    value: float
+    desc: str
+    fromId: int
+    toId: int
+    line: str = ''
+    manual: bool = True
+
+    def __hash__(self):
+        return hash(self.id)
 
     @classmethod
-    def fromXml(cls, el):
-        parts = [
+    def fromXml(cls, el) -> Expense:
+        return Expense(
             uuid.UUID(el.get("id")),
-            datetime.datetime(*map(int, re.split('[^\d]', el.get("date"))[:-1])),
+            dateutil.parser.parse(el.get("date")),
             float(el.get("value")),
             el.get("desc"),
             int(el.get("fromId")),
             int(el.get("toId")),
             el.get("line"),
             el.get("manual") == "True",
-        ]
-        return Expense(parts)
+        )
 
-    def toXml(self):
+    def toXml(self) -> ElementBase:
         return E.Expense(
-            id=str(self.__id),
-            date=str(self.__date),
-            value=str(self.__value),
-            desc=self.__desc,
-            fromId=str(self.__fromId),
-            toId=str(self.__toId),
-            line=self.__line,
-            manual=str(self.__manual))
-
-    @property
-    def value(self):
-        return self.__value
-
-    @property
-    def fromId(self):
-        return self.__fromId
-
-    @property
-    def toId(self):
-        return self.__toId
-
-    @property
-    def desc(self):
-        return self.__desc
-
-    @property
-    def date(self):
-        return self.__date
-
-    @property
-    def manual(self):
-        return self.__manual
-
-    def __str__(self):
-        return 'Date="{0}" Value="{1}" Description="{2}" FromId="{3}" ToId="{4}"'.format(
-            self.__date.strftime('%c'), self.__value, self.__desc, self.__fromId, self.__toId)
+            id=str(self.id),
+            date=str(self.date),
+            value=str(self.value),
+            desc=self.desc,
+            fromId=str(self.fromId),
+            toId=str(self.toId),
+            line=self.line,
+            manual=str(self.manual)
+        )

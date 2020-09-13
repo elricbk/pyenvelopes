@@ -313,18 +313,15 @@ class MainForm(QMainWindow):
         return item
 
     def addExpense(self):
-        try:
-            ex = self.__expMgr.addExpense(self.__ui.leExpenseUserInput.text())
-            tw = self.__ui.twExpenses
-            exp_date = ex.date.date()
-            topLevelItem = self.getTopLevelItemForDate(tw, exp_date)
-            self.addItemForExpense(topLevelItem, ex)
-            self.refreshEnvelopeValues()
-            self.__ui.leExpenseUserInput.setText('')
-            self.showCurrentEnvelopeValue()
-            self.expandTodayTopLevelItem()
-        except Exception as e:
-            print(e)
+        ex = self.__expMgr.addExpense(self.__ui.leExpenseUserInput.text())
+        tw = self.__ui.twExpenses
+        exp_date = ex.date.date()
+        topLevelItem = self.getTopLevelItemForDate(tw, exp_date)
+        self.addItemForExpense(topLevelItem, ex)
+        self.refreshEnvelopeValues()
+        self.__ui.leExpenseUserInput.setText('')
+        self.showCurrentEnvelopeValue()
+        self.expandTodayTopLevelItem()
 
     def deleteExpense(self):
         tw = self.__ui.twExpenses

@@ -6,7 +6,7 @@ from envelope_manager_facade import EnvelopeManagerFacade
 from lxml import etree
 from lxml.builder import E
 from lxml.etree import ElementTree
-from typing import List
+from typing import List, Optional
 
 import datetime
 import logging
@@ -22,12 +22,10 @@ class ExpenseManager:
         'expenses.xml'
     )
 
-    __expenses: List[Expense]
-    __envMgr: EnvelopeManagerFacade
+    __expenses: List[Expense] = []
+    __envMgr: EnvelopeManagerFacade = None
 
     def __init__(self):
-        self.__expenses = []
-        self.__envMgr = None
         self.__loadSavedExpenses()
 
     @property
@@ -41,22 +39,28 @@ class ExpenseManager:
         expense = parse_expense(user_input)
         if expense.from_envelope is None:
             expense.from_envelope = self.__envMgr.current_envelope_name()
-        ex = Expense([
+        ex = Expense(
             uuid.uuid4(),
             datetime.datetime.now(),
-            expense.amount,
+            float(expense.amount),
             expense.comment,
             self.__envMgr.get_id_for_name(expense.from_envelope),
             self.__envMgr.get_id_for_name(expense.to_envelope),
             user_input,
             True
-        ])
+        )
         self.__expenses.append(ex)
         self.__saveAllExpenses()
         return ex
 
-    def addExpenseForRule(self, amount, fromId, toId, comment='Automatic expense'):
-        data = [
+    def addExpenseForRule(
+        self,
+        amount: float,
+        fromId: int,
+        toId: int,
+        comment: str='Automatic expense'
+    ) -> Expense:
+        ex = Expense(
             uuid.uuid4(),
             datetime.datetime.now(),
             amount,
@@ -64,9 +68,8 @@ class ExpenseManager:
             fromId,
             toId,
             '',
-            False,
-        ]
-        ex = Expense(data)
+            False
+        )
         self.__expenses.append(ex)
         self.__saveAllExpenses()
         return ex

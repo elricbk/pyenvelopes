@@ -28,7 +28,7 @@ class ExpenseRuleManager:
         self.__expMgr = expMgr
 
     @property
-    def rules(self):
+    def rules(self) -> List[ExpenseRule]:
         return self.__rules
 
     def __loadSavedRules(self):
