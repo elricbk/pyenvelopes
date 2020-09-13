@@ -32,5 +32,14 @@ class TestExpense(unittest.TestCase):
         self.assertEqual(expense.fromId, 3)
         self.assertEqual(expense.toId, 4)
 
+    def test_expense__always__can_be_used_as_map_key(self):
+        expense = Expense(uuid.uuid4(), datetime.datetime.now(), 42, '', 0, 0)
+        data = {}
+
+        data[expense] = 4
+
+        self.assertEqual(data[expense], 4)
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -10,7 +10,7 @@ import lxml
 import uuid
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(eq=True, frozen=True)
 class Expense:
     id: uuid.UUID
     date: datetime.datetime
@@ -20,9 +20,6 @@ class Expense:
     toId: int
     line: str = ''
     manual: bool = True
-
-    def __hash__(self):
-        return hash(self.id)
 
     @classmethod
     def fromXml(cls, el) -> Expense:
