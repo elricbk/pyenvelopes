@@ -1,7 +1,6 @@
-# -*- coding: utf8 -*-
-from Expense import Expense
-from parse_expense import parse_expense
 from envelope_manager_facade import EnvelopeManagerFacade
+from expense import Expense
+from parse_expense import parse_expense
 
 from lxml import etree
 from lxml.builder import E

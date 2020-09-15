@@ -1,4 +1,4 @@
-from Expense import Expense
+from expense import Expense
 
 from lxml import etree
 import datetime
