@@ -1,9 +1,10 @@
-from Envelope import Envelope
+from Envelope import EnvelopeId, Envelope
 from envelope_manager_facade import EnvelopeManagerFacade
 
-import datetime
 from lxml import etree
 from lxml.builder import E
+from typing import Dict
+import datetime
 import logging
 import os
 
@@ -48,8 +49,13 @@ class EnvelopeManager:
         'envelopes.xml'
     )
 
+    __envelopes: Dict[EnvelopeId, Envelope] = {
+        1: Envelope(1, 'Income', ''),
+        2: Envelope(2, 'Expense', ''),
+        3: Envelope(3, 'Leftover', '')
+    }
+
     def __init__(self):
-        self.__envelopes = {1: Envelope.Income(), 2: Envelope.Expense(), 3: Envelope.Leftover()}
         self.__expMgr = None
         self.__loadSavedEnvelopes()
 
@@ -63,7 +69,7 @@ class EnvelopeManager:
         logging.info("Adding envelope with name %s, id will be %d", name, self.__maxId())
         if name.lower() in (v.name.lower() for v in self.envelopes.values()):
             raise RuntimeError("Envelope with given name already exists")
-        e = Envelope.fromData(self.__maxId() + 1, name, desc)
+        e = Envelope(self.__maxId() + 1, name, desc)
         self.__envelopes[e.id] = e
         self.__saveAllEnvelopes()
         return e
