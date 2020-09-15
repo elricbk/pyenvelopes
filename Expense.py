@@ -6,7 +6,6 @@ from lxml.etree import ElementBase
 import dataclasses
 import datetime
 import dateutil.parser
-import lxml
 import uuid
 
 
@@ -22,7 +21,7 @@ class Expense:
     manual: bool = True
 
     @classmethod
-    def fromXml(cls, el) -> Expense:
+    def fromXml(cls, el: ElementBase) -> Expense:
         return Expense(
             uuid.UUID(el.get("id")),
             dateutil.parser.parse(el.get("date")),
