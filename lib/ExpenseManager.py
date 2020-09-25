@@ -3,7 +3,7 @@ from .expense import Expense
 from .parse_expense import parse_expense
 
 from lxml import etree
-from lxml.builder import E
+from lxml.builder import E # type: ignore
 from lxml.etree import ElementTree
 from typing import List, Optional
 

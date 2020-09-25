@@ -3,7 +3,7 @@ from .ExpenseManager import ExpenseManager
 
 import uuid
 from lxml import etree
-from lxml.builder import E
+from lxml.builder import E # type: ignore
 from typing import List
 import logging
 import os

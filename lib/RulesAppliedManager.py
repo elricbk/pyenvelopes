@@ -1,7 +1,7 @@
 import logging
 import shutil
 import lxml.etree as etree
-from lxml.builder import E
+from lxml.builder import E # type: ignore
 import os
 
 class RulesAppliedManager(object):

@@ -1,5 +1,5 @@
 import uuid
-from lxml.builder import E
+from lxml.builder import E # type: ignore
 
 class ExpenseRule:
     def __init__(self, ruleId, amount, fromId, toId):

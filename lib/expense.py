@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from lxml.builder import E
+from lxml.builder import E # type: ignore
 from lxml.etree import ElementBase
 
 from dataclasses import dataclass, field

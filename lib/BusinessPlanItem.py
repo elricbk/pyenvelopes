@@ -1,6 +1,6 @@
 import uuid
 import math
-from lxml.builder import E
+from lxml.builder import E # type: ignore
 
 class ItemType:
     Income = 1

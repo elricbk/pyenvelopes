@@ -1,4 +1,4 @@
-from lxml.builder import E
+from lxml.builder import E # type: ignore
 from lxml.etree import ElementBase
 import dataclasses
 

@@ -2,7 +2,7 @@ from .Envelope import EnvelopeId, Envelope
 from .envelope_manager_facade import EnvelopeManagerFacade
 
 from lxml import etree
-from lxml.builder import E
+from lxml.builder import E # type: ignore
 from typing import Dict
 import datetime
 import logging
