@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from lib.MainForm import MainForm
 from PySide2.QtWidgets import QApplication
 import sys
