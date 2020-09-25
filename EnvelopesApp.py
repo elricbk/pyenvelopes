@@ -1,13 +1,17 @@
-from MainForm import MainForm
+from lib.MainForm import MainForm
 from PySide2.QtWidgets import QApplication
 import sys
 import logging
 
-FORMAT = "%(asctime)s - %(levelname)-8s - %(message)s"
-logging.basicConfig(level=logging.DEBUG, filename='/tmp/envelopes.log', format=FORMAT)
+if __name__ == "__main__":
+    logging.basicConfig(
+        level=logging.DEBUG,
+        filename='/tmp/envelopes.log',
+        format="%(asctime)s - %(levelname)-8s - %(message)s"
+    )
 
-app = QApplication(sys.argv)
-w = MainForm()
-w.show()
+    app = QApplication(sys.argv)
+    w = MainForm()
+    w.show()
 
-app.exec_()
+    app.exec_()

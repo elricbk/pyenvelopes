@@ -324,12 +324,12 @@
   <customwidget>
    <class>AutoCompleteEdit</class>
    <extends>QLineEdit</extends>
-   <header>controls.autocompleteedit.h</header>
+   <header>lib.controls.autocompleteedit.h</header>
   </customwidget>
   <customwidget>
    <class>ExpenseTreeWidget</class>
    <extends>QTreeWidget</extends>
-   <header>controls.expensetreewidget.h</header>
+   <header>lib.controls.expensetreewidget.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

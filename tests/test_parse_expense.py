@@ -1,4 +1,4 @@
-from parse_expense import parse_expense
+from lib.parse_expense import parse_expense
 
 import unittest
 

@@ -1,4 +1,5 @@
-from BusinessPlanItem import BusinessPlanItem, ItemType, Frequency
+from .BusinessPlanItem import BusinessPlanItem, ItemType, Frequency
+
 import uuid
 import lxml.etree as etree
 from lxml.builder import E

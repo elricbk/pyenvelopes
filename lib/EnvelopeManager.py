@@ -1,5 +1,5 @@
-from Envelope import EnvelopeId, Envelope
-from envelope_manager_facade import EnvelopeManagerFacade
+from .Envelope import EnvelopeId, Envelope
+from .envelope_manager_facade import EnvelopeManagerFacade
 
 from lxml import etree
 from lxml.builder import E

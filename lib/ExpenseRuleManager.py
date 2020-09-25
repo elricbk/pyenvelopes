@@ -1,5 +1,5 @@
-from ExpenseRule import ExpenseRule
-from ExpenseManager import ExpenseManager
+from .ExpenseRule import ExpenseRule
+from .ExpenseManager import ExpenseManager
 
 import uuid
 from lxml import etree

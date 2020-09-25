@@ -6,15 +6,15 @@ from PySide2.QtWidgets import QMainWindow, QApplication, QListWidget, QListWidge
 from PySide2.QtWidgets import QTableWidgetItem, QMessageBox, QTreeWidgetItem
 from PySide2.QtCore import Qt
 
-from ui_MainForm import Ui_MainWindow
-from ExpenseManager import ExpenseManager
-from EnvelopeManager import EnvelopeManager, make_facade
-from ExpenseRuleManager import ExpenseRuleManager
-from BusinessPlan import BusinessPlan
-from BusinessPlanItem import Frequency, ItemType
-from RulesAppliedManager import RulesAppliedManager
-from controls.autocompleteedit import SuggestItem
-from utils import formatValue
+from .ui_MainForm import Ui_MainWindow
+from .ExpenseManager import ExpenseManager
+from .EnvelopeManager import EnvelopeManager, make_facade
+from .ExpenseRuleManager import ExpenseRuleManager
+from .BusinessPlan import BusinessPlan
+from .BusinessPlanItem import Frequency, ItemType
+from .RulesAppliedManager import RulesAppliedManager
+from .controls.autocompleteedit import SuggestItem
+from .utils import formatValue
 
 # FIXME: this should be configured somehow
 DAYS_TO_SHOW_THRESHOLD = 28

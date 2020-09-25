@@ -1,11 +1,12 @@
 # coding=utf-8
 
+from lib.utils import formatValue
+from lib.controls.pastel_colors import PastelColors
+
 from PySide2.QtWidgets import QTreeWidget, QStyleOptionViewItem, QStyledItemDelegate, QStyle
 from PySide2.QtGui import QPainter, QColor
 from PySide2.QtCore import Qt, QModelIndex, QSize, QPoint, QRect
 import logging
-from utils import formatValue
-from .pastel_colors import PastelColors
 import re
 
 LINE_SPACING = 4

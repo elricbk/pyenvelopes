@@ -1,4 +1,4 @@
-from Envelope import Envelope
+from lib.Envelope import Envelope
 from lxml import etree
 
 def test_to_xml__always__serializes_envelope():
