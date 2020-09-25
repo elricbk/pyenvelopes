@@ -3,34 +3,34 @@ from __future__ import annotations
 from lxml.builder import E
 from lxml.etree import ElementBase
 
-import dataclasses
+from dataclasses import dataclass, field
 import datetime
 import dateutil.parser
 import uuid
 
 
-@dataclasses.dataclass(eq=True, frozen=True)
+@dataclass(eq=True, frozen=True)
 class Expense:
-    id: uuid.UUID
-    date: datetime.datetime
     value: float
     desc: str
     fromId: int
     toId: int
     line: str = ''
-    manual: bool = True
+    manual: bool = False
+    date: datetime.datetime = field(default_factory=datetime.datetime.now)
+    id: uuid.UUID = field(default_factory=uuid.uuid4)
 
     @classmethod
     def fromXml(cls, el: ElementBase) -> Expense:
         return Expense(
-            uuid.UUID(el.get("id")),
-            dateutil.parser.parse(el.get("date")),
             float(el.get("value")),
             el.get("desc"),
             int(el.get("fromId")),
             int(el.get("toId")),
             el.get("line"),
             el.get("manual") == "True",
+            dateutil.parser.parse(el.get("date")),
+            uuid.UUID(el.get("id")),
         )
 
     def toXml(self) -> ElementBase:

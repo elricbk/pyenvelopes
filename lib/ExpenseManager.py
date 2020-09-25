@@ -39,8 +39,6 @@ class ExpenseManager:
         if expense.from_envelope is None:
             expense.from_envelope = self.__envMgr.current_envelope_name()
         ex = Expense(
-            uuid.uuid4(),
-            datetime.datetime.now(),
             float(expense.amount),
             expense.comment,
             self.__envMgr.get_id_for_name(expense.from_envelope),
@@ -59,16 +57,7 @@ class ExpenseManager:
         toId: int,
         comment: str='Automatic expense'
     ) -> Expense:
-        ex = Expense(
-            uuid.uuid4(),
-            datetime.datetime.now(),
-            amount,
-            comment,
-            fromId,
-            toId,
-            '',
-            False
-        )
+        ex = Expense(amount, comment, fromId, toId)
         self.__expenses.append(ex)
         self.__saveAllExpenses()
         return ex
