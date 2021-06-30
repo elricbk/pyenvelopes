@@ -7,14 +7,11 @@ from lxml.builder import E # type: ignore
 from typing import List
 import logging
 import os
+import settings
 
 
 class ExpenseRuleManager:
-    __ruleFileName = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        'data',
-        'rules.xml'
-    )
+    __ruleFileName = os.path.join(settings.data_path, 'rules.xml')
     __instance = None
 
     __expMgr: ExpenseManager

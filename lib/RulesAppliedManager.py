@@ -3,13 +3,10 @@ import shutil
 import lxml.etree as etree
 from lxml.builder import E # type: ignore
 import os
+import settings
 
 class RulesAppliedManager(object):
-    __fileName = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        'data',
-        'rules_applied.xml'
-    )
+    __fileName = os.path.join(settings.data_path, 'rules_applied.xml')
 
     def __init__(self):
         self.__items = []

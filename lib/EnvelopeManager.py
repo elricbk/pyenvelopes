@@ -7,6 +7,7 @@ from typing import Dict
 import datetime
 import logging
 import os
+import settings
 
 __MAX_WEEKLY_ENVELOPES = 4
 
@@ -43,11 +44,7 @@ def filterWeeklyEnvelopes(envelopes):
     return result
 
 class EnvelopeManager:
-    __envelopeFileName = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        'data',
-        'envelopes.xml'
-    )
+    __envelopeFileName = os.path.join(settings.data_path, 'envelopes.xml')
 
     __envelopes: Dict[EnvelopeId, Envelope] = {
         1: Envelope(1, 'Income', ''),

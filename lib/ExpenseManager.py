@@ -15,11 +15,7 @@ import shutil
 import uuid
 
 class ExpenseManager:
-    __expenseFileName = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        'data',
-        'expenses.xml'
-    )
+    __expenseFileName = os.path.join(settings.data_path, 'expenses.xml')
 
     __expenses: List[Expense] = []
     __envMgr: EnvelopeManagerFacade = None
