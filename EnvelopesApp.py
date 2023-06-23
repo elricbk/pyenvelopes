@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from lib.MainForm import MainForm
-from PySide2.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication
 import sys
 import logging
 
@@ -15,4 +15,4 @@ if __name__ == "__main__":
     w = MainForm()
     w.show()
 
-    app.exec_()
+    app.exec()

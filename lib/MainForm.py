@@ -2,9 +2,9 @@
 import logging
 import datetime
 
-from PySide2.QtWidgets import QMainWindow, QApplication, QListWidget, QListWidgetItem
-from PySide2.QtWidgets import QTableWidgetItem, QMessageBox, QTreeWidgetItem
-from PySide2.QtCore import Qt
+from PySide6.QtWidgets import QMainWindow, QApplication, QListWidget, QListWidgetItem
+from PySide6.QtWidgets import QTableWidgetItem, QMessageBox, QTreeWidgetItem
+from PySide6.QtCore import Qt
 
 from .ui_MainForm import Ui_MainWindow
 from .ExpenseManager import ExpenseManager

@@ -1,5 +1,5 @@
 import hashlib
-from PySide2.QtGui import QColor
+from PySide6.QtGui import QColor
 
 class PastelColors:
     full_list = list(

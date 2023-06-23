@@ -1,11 +1,11 @@
 from .BusinessPlanItem import BusinessPlanItem, ItemType, Frequency
+from lib import settings
 
 import uuid
 import lxml.etree as etree
 from lxml.builder import E # type: ignore
 import logging
 import os
-import settings
 
 
 class BusinessPlan:

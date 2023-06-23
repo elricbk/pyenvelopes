@@ -3,7 +3,7 @@ import shutil
 import lxml.etree as etree
 from lxml.builder import E # type: ignore
 import os
-import settings
+from lib import settings
 
 class RulesAppliedManager(object):
     __fileName = os.path.join(settings.data_path, 'rules_applied.xml')

@@ -3,9 +3,9 @@
 from lib.utils import formatValue
 from lib.controls.pastel_colors import PastelColors
 
-from PySide2.QtWidgets import QTreeWidget, QStyleOptionViewItem, QStyledItemDelegate, QStyle
-from PySide2.QtGui import QPainter, QColor
-from PySide2.QtCore import Qt, QModelIndex, QSize, QPoint, QRect
+from PySide6.QtWidgets import QTreeWidget, QStyleOptionViewItem, QStyledItemDelegate, QStyle
+from PySide6.QtGui import QPainter, QColor
+from PySide6.QtCore import Qt, QModelIndex, QSize, QPoint, QRect
 import logging
 import re
 
@@ -160,7 +160,7 @@ class ExpenseTreeWidget(QTreeWidget):
         """
         sumForDay = 0
         idx = 0
-        child = index.child(idx, 0)
+        child = index.model().index(idx, 0, index)
         while child.isValid():
             expense = child.data(Qt.UserRole)
             if expense.manual:
@@ -169,11 +169,11 @@ class ExpenseTreeWidget(QTreeWidget):
                     # FIXME: there should be a better way to check for weekly envelope
                     if not fromName.startswith("Week_"):
                         idx += 1
-                        child = index.child(idx, 0)
+                        child = index.model().index(idx, 0, index)
                         continue
                 sumForDay += expense.value
             idx += 1
-            child = index.child(idx, 0)
+            child = index.model().index(idx, 0, index)
         return formatValue(sumForDay)
 
     def drawRow(self, painter, option, index):

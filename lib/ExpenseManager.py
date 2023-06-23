@@ -2,10 +2,11 @@ from .envelope_manager_facade import EnvelopeManagerFacade
 from .expense import Expense
 from .parse_expense import parse_expense
 
+from lib import settings
+
 from lxml import etree
 from lxml.builder import E # type: ignore
 from lxml.etree import ElementTree
-from typing import List, Optional
 
 import datetime
 import logging
@@ -13,6 +14,7 @@ import os
 import re
 import shutil
 import uuid
+from typing import List, Optional
 
 class ExpenseManager:
     __expenseFileName = os.path.join(settings.data_path, 'expenses.xml')

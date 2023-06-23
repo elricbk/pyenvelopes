@@ -1,5 +1,6 @@
 from .Envelope import EnvelopeId, Envelope
 from .envelope_manager_facade import EnvelopeManagerFacade
+from lib import settings
 
 from lxml import etree
 from lxml.builder import E # type: ignore
@@ -7,7 +8,6 @@ from typing import Dict
 import datetime
 import logging
 import os
-import settings
 
 __MAX_WEEKLY_ENVELOPES = 4
 
@@ -103,7 +103,7 @@ class EnvelopeManager:
         for k, v in self.__envelopes.items():
             if envName.lower() == v.name.lower():
                 return k
-        raise Exception('No envelope with given name')
+        raise Exception(f'No envelope with name "{envName}", known envelopes: {self.__envelopes}')
 
     def envNameForId(self, envId):
         return self.__envelopes[envId].name

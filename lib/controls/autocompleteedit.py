@@ -5,7 +5,7 @@ QLineEdit with autocompletion for given list of words
 Found here: http://blog.elentok.com/2011/08/autocomplete-textbox-for-multiple.html
 """
 
-from PySide2 import QtCore, QtGui, QtWidgets
+from PySide6 import QtCore, QtGui, QtWidgets
 import collections
 
 SuggestItem = collections.namedtuple('SuggestItem', 'displayText,suggestText')

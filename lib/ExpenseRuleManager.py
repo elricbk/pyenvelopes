@@ -1,5 +1,6 @@
 from .ExpenseRule import ExpenseRule
 from .ExpenseManager import ExpenseManager
+from lib import settings
 
 import uuid
 from lxml import etree
@@ -7,7 +8,6 @@ from lxml.builder import E # type: ignore
 from typing import List
 import logging
 import os
-import settings
 
 
 class ExpenseRuleManager:
