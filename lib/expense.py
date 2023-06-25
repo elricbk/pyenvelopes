@@ -1,12 +1,14 @@
 from __future__ import annotations
 
-from lxml.builder import E # type: ignore
-from lxml.etree import ElementBase
-
-from dataclasses import dataclass, field
 import datetime
-import dateutil.parser
 import uuid
+from dataclasses import dataclass, field
+
+import dateutil.parser
+from lxml.builder import E  # type: ignore
+from lxml.etree import _Element
+
+from lib.utils import unwrap
 
 
 @dataclass(eq=True, frozen=True)
@@ -15,25 +17,25 @@ class Expense:
     desc: str
     fromId: int
     toId: int
-    line: str = ''
+    line: str = ""
     manual: bool = False
     date: datetime.datetime = field(default_factory=datetime.datetime.now)
     id: uuid.UUID = field(default_factory=uuid.uuid4)
 
     @classmethod
-    def fromXml(cls, el: ElementBase) -> Expense:
+    def fromXml(cls, el: _Element) -> Expense:
         return Expense(
-            float(el.get("value")),
-            el.get("desc"),
-            int(el.get("fromId")),
-            int(el.get("toId")),
-            el.get("line"),
-            el.get("manual") == "True",
-            dateutil.parser.parse(el.get("date")),
-            uuid.UUID(el.get("id")),
+            float(unwrap(el.get("value"))),
+            unwrap(el.get("desc")),
+            int(unwrap(el.get("fromId"))),
+            int(unwrap(el.get("toId"))),
+            unwrap(el.get("line")),
+            unwrap(el.get("manual")) == "True",
+            dateutil.parser.parse(unwrap(el.get("date"))),
+            uuid.UUID(unwrap(el.get("id"))),
         )
 
-    def toXml(self) -> ElementBase:
+    def toXml(self) -> _Element:
         return E.Expense(
             id=str(self.id),
             date=str(self.date),
@@ -42,5 +44,5 @@ class Expense:
             fromId=str(self.fromId),
             toId=str(self.toId),
             line=self.line,
-            manual=str(self.manual)
+            manual=str(self.manual),
         )

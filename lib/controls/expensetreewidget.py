@@ -1,121 +1,153 @@
 # coding=utf-8
 
-from lib.utils import formatValue
-from lib.controls.pastel_colors import PastelColors
-
-from PySide6.QtWidgets import QTreeWidget, QStyleOptionViewItem, QStyledItemDelegate, QStyle
-from PySide6.QtGui import QPainter, QColor
-from PySide6.QtCore import Qt, QModelIndex, QSize, QPoint, QRect
 import logging
 import re
+import typing as ty
 
-LINE_SPACING = 4
-MARGIN = 7
-LEFT_MARGIN = 20
+from lib.controls.pastel_colors import PastelColors
+from lib.utils import formatValue
+from PySide6.QtCore import (QModelIndex, QObject, QPersistentModelIndex,
+                            QPoint, QRect, QRectF, QSize, Qt)
+from PySide6.QtGui import QColor, QFontMetrics, QPainter
+from PySide6.QtWidgets import (QAbstractItemDelegate, QStyle,
+                               QStyledItemDelegate, QStyleOptionViewItem,
+                               QTreeWidget)
+
+from ..expense import Expense
+
+LINE_SPACING: ty.Final = 4
+MARGIN: ty.Final = 7
+LEFT_MARGIN: ty.Final = 20
+
+ModelIndex = ty.Union[QModelIndex, QPersistentModelIndex]
+
 
 class ExpensesItemDelegate(QStyledItemDelegate):
-    def __init__(self, delegate):
+    def __init__(self, delegate: QAbstractItemDelegate):
         QStyledItemDelegate.__init__(self)
         self._delegate = delegate
 
-    def sizeHint(self, option, index):
-        """
-        @type option: QStyleOptionViewItem
-        @type index: QModelIndex
-        """
+    def sizeHint(
+        self, option: QStyleOptionViewItem, index: ModelIndex
+    ) -> QSize:
         size = self._delegate.sizeHint(option, index)
         if index.parent().isValid():
-            ex = index.data(Qt.UserRole)
-            height = option.fontMetrics.boundingRect(ex.desc).height() * 2 + LINE_SPACING + 2 * MARGIN
+            expense: Expense = index.data(Qt.ItemDataRole.UserRole)
+            # For some reason PySide6 typing is missing `fontMetrics` from `QStyleOption`
+            fontMetrics: QFontMetrics = ty.cast(ty.Any, option).fontMetrics
+            height = (
+                fontMetrics.boundingRect(expense.desc).height() * 2
+                + LINE_SPACING
+                + 2 * MARGIN
+            )
             return QSize(size.width(), height)
         else:
             return QSize(size.width(), size.height() + 5)
 
 
 class ExpenseTreeWidget(QTreeWidget):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: ty.Any, **kwargs: ty.Any) -> None:
         QTreeWidget.__init__(self, *args, **kwargs)
         self.setItemDelegate(ExpensesItemDelegate(self.itemDelegate()))
-        self._idToName = None
+        self._idToName: ty.Optional[ty.Callable[[int], str]] = None
 
-    def setIdToName(self, idToName):
+    def setIdToName(self, idToName: ty.Callable[[int], str]) -> None:
         self._idToName = idToName
 
-    def _drawGroupRow(self, option, painter, index):
+    def _drawGroupRow(
+        self, option: QStyleOptionViewItem, painter: QPainter, index: ModelIndex
+    ) -> None:
         painter.save()
-        painter.fillRect(option.rect, Qt.lightGray)
-        painter.setPen(Qt.darkGray)
-        painter.drawLine(option.rect.bottomLeft(), option.rect.bottomRight())
-        painter.setPen(QColor(Qt.lightGray).lighter(120))
-        painter.drawLine(option.rect.topLeft(), option.rect.topRight())
+        rect: QRect = ty.cast(ty.Any, option).rect
+        painter.fillRect(rect, Qt.GlobalColor.lightGray)
+        painter.setPen(Qt.GlobalColor.darkGray)
+        painter.drawLine(rect.bottomLeft(), rect.bottomRight())
+        painter.setPen(QColor(Qt.GlobalColor.lightGray).lighter(120))
+        painter.drawLine(rect.topLeft(), rect.topRight())
         super(QTreeWidget, self).drawRow(painter, option, index)
-        painter.setPen(Qt.black)
+        painter.setPen(Qt.GlobalColor.black)
         font = painter.font()
         font.setBold(True)
         painter.setFont(font)
-        painter.drawText(option.rect.adjusted(0, 0, -MARGIN, 0), Qt.AlignVCenter | Qt.AlignRight, self._getSumForDay(index))
+        painter.drawText(
+            rect.adjusted(0, 0, -MARGIN, 0),
+            Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignRight,
+            self._getSumForDay(index),
+        )
         painter.restore()
 
-    def _drawLeafRow(self, option, painter, index):
-        """
-        @type painter: QPainter
-        @type option: QStyleOptionViewItem
-        @type index: QModelIndex
-        """
-        rect = option.rect
+    def _drawLeafRow(
+        self, option: QStyleOptionViewItem, painter: QPainter, index: ModelIndex
+    ) -> None:
+        # For some reason PySide6 typing is missing `rect` from `QStyleOption`
+        rect: QRect = ty.cast(ty.Any, option).rect
         if self.selectionModel().isSelected(index):
-            painter.fillRect(rect, Qt.white)
+            painter.fillRect(rect, Qt.GlobalColor.white)
         else:
-            painter.fillRect(rect, QColor(Qt.lightGray).lighter(120))
-        painter.setPen(Qt.darkGray)
+            painter.fillRect(
+                rect, QColor(Qt.GlobalColor.lightGray).lighter(120)
+            )
+        painter.setPen(Qt.GlobalColor.darkGray)
         painter.drawLine(rect.bottomLeft(), rect.bottomRight())
-        painter.setPen(QColor(Qt.lightGray).lighter())
+        painter.setPen(QColor(Qt.GlobalColor.lightGray).lighter())
         painter.drawLine(rect.topLeft(), rect.topRight())
-        ex = index.data(Qt.UserRole)
-        painter.setPen(Qt.black)
+        ex: Expense = index.data(Qt.ItemDataRole.UserRole)
+        painter.setPen(Qt.GlobalColor.black)
         painter.save()
         font = painter.font()
         font.setBold(True)
         painter.setFont(font)
-        painter.drawText(rect.adjusted(LEFT_MARGIN, 0, 0, -rect.height() / 2), Qt.AlignVCenter, ex.desc)
+        painter.drawText(
+            rect.adjusted(LEFT_MARGIN, 0, 0, -rect.height() // 2),
+            Qt.AlignmentFlag.AlignVCenter,
+            ex.desc,
+        )
         painter.restore()
-        painter.setPen(Qt.darkGray)
-        painter.setRenderHint(QPainter.Antialiasing)
-        cleanupEmojis = lambda it: re.sub(r'[\u263a-\U0001f645]', '', fromName)
+        painter.setPen(Qt.GlobalColor.darkGray)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        cleanupEmojis = lambda it: re.sub(r"[\u263a-\U0001f645]", "", it)
         if self._idToName is not None:
             fromName = self._idToName(ex.fromId)
-            fromRectH = painter.fontMetrics().boundingRect(cleanupEmojis(fromName))
+            fromRectH = painter.fontMetrics().boundingRect(
+                cleanupEmojis(fromName)
+            )
             fromRectW = painter.fontMetrics().boundingRect(fromName)
             fromRect = QRect(
                 fromRectW.left(),
                 fromRectH.top(),
                 fromRectW.width(),
-                fromRectH.height()
+                fromRectH.height(),
             )
             painter.setBrush(PastelColors.color_for_string(fromName))
-            painter.setPen(Qt.transparent)
-            bottomRect = rect.adjusted(LEFT_MARGIN, rect.height() / 2, 0, 0)
+            painter.setPen(Qt.GlobalColor.transparent)
+            bottomRect = rect.adjusted(LEFT_MARGIN, rect.height() // 2, 0, 0)
             fromRect = fromRect.adjusted(-4, -2, 4, 2)
-            fromRect = QRect(bottomRect.left(),
-                             bottomRect.top(),
-                             fromRect.width(),
-                             fromRect.height())
+            fromRect = QRect(
+                bottomRect.left(),
+                bottomRect.top(),
+                fromRect.width(),
+                fromRect.height(),
+            )
             painter.drawRoundedRect(fromRect, 3, 3)
-            painter.setPen(Qt.darkGray)
-            painter.drawText(fromRect.adjusted(4, 2, -4, -2), Qt.AlignVCenter, fromName)
+            painter.setPen(Qt.GlobalColor.darkGray)
+            painter.drawText(
+                fromRect.adjusted(4, 2, -4, -2),
+                Qt.AlignmentFlag.AlignVCenter,
+                fromName,
+            )
 
             painter.save()
             # FIXME: normal check for weekly and income envelopes, colors to constants
             if not ex.manual:
                 painter.setBrush(QColor(157, 157, 157))
             elif fromName.startswith("Week_"):
-                painter.setBrush(Qt.transparent)
+                painter.setBrush(Qt.GlobalColor.transparent)
             elif fromName.lower() == "доход" or fromName.lower() == "income":
                 painter.setBrush(QColor(100, 230, 100))
             else:
                 painter.setBrush(QColor(120, 120, 230))
-            painter.setPen(Qt.transparent)
-            painter.drawRect(QRect(0, rect.top() + 4, 4, rect.height() - 10))
+            painter.setPen(Qt.GlobalColor.transparent)
+            painter.drawRect(QRectF(0, rect.top() + 4, 4, rect.height() - 10))
             painter.restore()
 
             bottomRect = bottomRect.adjusted(fromRect.width() + MARGIN, 0, 0, 0)
@@ -123,24 +155,23 @@ class ExpenseTreeWidget(QTreeWidget):
             toRectH = painter.fontMetrics().boundingRect(cleanupEmojis(toName))
             toRectW = painter.fontMetrics().boundingRect(toName)
             toRect = QRect(
-                toRectW.left(),
-                toRectH.top(),
-                toRectW.width(),
-                toRectH.height()
+                toRectW.left(), toRectH.top(), toRectW.width(), toRectH.height()
             )
             toRect = toRect.adjusted(-4, -2, 4, 2)
-            toRect = QRect(bottomRect.left(),
-                           bottomRect.top(),
-                           toRect.width(),
-                           toRect.height())
+            toRect = QRect(
+                int(bottomRect.left()),
+                int(bottomRect.top()),
+                toRect.width(),
+                toRect.height(),
+            )
             painter.setBrush(PastelColors.color_for_string(toName))
-            painter.setPen(Qt.transparent)
+            painter.setPen(Qt.GlobalColor.transparent)
             painter.drawRoundedRect(toRect, 3, 3)
-            painter.setPen(Qt.darkGray)
+            painter.setPen(Qt.GlobalColor.darkGray)
             painter.drawText(
                 toRect.adjusted(4, 2, -4, -2),
-                Qt.AlignVCenter,
-                toName
+                Qt.AlignmentFlag.AlignVCenter,
+                toName,
             )
         font = painter.font()
         font.setPixelSize(24)
@@ -148,21 +179,18 @@ class ExpenseTreeWidget(QTreeWidget):
         painter.save()
         painter.setFont(font)
         painter.drawText(
-            rect.adjusted(rect.width() / 2, 0, -5, 0),
-            Qt.AlignRight | Qt.AlignVCenter,
-            formatValue(ex.value)
+            rect.adjusted(rect.width() // 2, 0, -5, 0),
+            Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter,
+            formatValue(int(ex.value)),
         )
         painter.restore()
 
-    def _getSumForDay(self, index):
-        """
-        @type index: QModelIndex
-        """
+    def _getSumForDay(self, index: ModelIndex) -> str:
         sumForDay = 0
         idx = 0
         child = index.model().index(idx, 0, index)
         while child.isValid():
-            expense = child.data(Qt.UserRole)
+            expense = child.data(Qt.ItemDataRole.UserRole)
             if expense.manual:
                 if self._idToName is not None:
                     fromName = self._idToName(expense.fromId)
@@ -174,14 +202,11 @@ class ExpenseTreeWidget(QTreeWidget):
                 sumForDay += expense.value
             idx += 1
             child = index.model().index(idx, 0, index)
-        return formatValue(sumForDay)
+        return formatValue(int(sumForDay))
 
-    def drawRow(self, painter, option, index):
-        """
-        @type painter: QPainter
-        @type option: QStyleOptionViewItem
-        @type index: QModelIndex
-        """
+    def drawRow(
+        self, painter: QPainter, option: QStyleOptionViewItem, index: ModelIndex
+    ) -> None:
         painter.save()
         if not index.parent().isValid():
             self._drawGroupRow(option, painter, index)

@@ -1,5 +1,15 @@
-# encoding: utf-8
+import typing as ty
 
-def formatValue(value):
+
+def formatValue(value: int) -> str:
     # Can't use space directly as a separator, so `replace` is used
-    return "{:,}\u2009₽".format(int(value)).replace(",", "\u2009")
+    return "{:,}\u2009₽".format(value).replace(",", "\u2009")
+
+
+T = ty.TypeVar("T")
+
+
+def unwrap(value: ty.Optional[T]) -> T:
+    if value is None:
+        raise RuntimeError("Unexpected None value")
+    return value

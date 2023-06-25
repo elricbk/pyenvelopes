@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 
+
 class EnvelopeManagerFacade(ABC):
     @abstractmethod
     def current_envelope_name(self) -> str:

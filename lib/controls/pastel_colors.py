@@ -1,5 +1,7 @@
 import hashlib
+
 from PySide6.QtGui import QColor
+
 
 class PastelColors:
     full_list = list(
@@ -7,7 +9,6 @@ class PastelColors:
     )
 
     @staticmethod
-    def color_for_string(s):
-        h = int(hashlib.md5(s.encode('utf-8')).hexdigest(), 16)
+    def color_for_string(s: str) -> QColor:
+        h = int(hashlib.md5(s.encode("utf-8")).hexdigest(), 16)
         return PastelColors.full_list[h % len(PastelColors.full_list)]
-

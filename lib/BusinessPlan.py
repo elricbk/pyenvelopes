@@ -1,28 +1,32 @@
-from .BusinessPlanItem import BusinessPlanItem, ItemType, Frequency
-from lib import settings
-
-import uuid
-import lxml.etree as etree
-from lxml.builder import E # type: ignore
 import logging
 import os
+import typing as ty
+import uuid
+
+import lxml.etree as etree
+from lxml.builder import E  # type: ignore
+from lxml.etree import _Element
+
+from lib import settings
+
+from .BusinessPlanItem import BusinessPlanItem, Frequency, ItemType
 
 
 class BusinessPlan:
-    __itemsFileName = os.path.join(settings.data_path, 'business_plan.xml')
+    __itemsFileName = os.path.join(settings.data_path, "business_plan.xml")
 
-    def __init__(self):
-        self.__items = []
+    def __init__(self) -> None:
+        self.__items: list[BusinessPlanItem] = []
         self.__load()
 
-    def __load(self):
+    def __load(self) -> None:
         try:
             doc = etree.parse(BusinessPlan.__itemsFileName)
         except Exception:
             logging.exception("Exception while reading business plan data")
             return
 
-        for el in doc.xpath("//Item"):
+        for el in ty.cast(list[_Element], doc.xpath("//Item")):
             try:
                 item = BusinessPlanItem.fromXml(el)
                 self.__items.append(item)
@@ -30,7 +34,7 @@ class BusinessPlan:
                 logging.exception("Exception while parsing BusinessPlanItem")
                 continue
 
-    def save(self):
+    def save(self) -> None:
         doc = E.BusinessPlan()
         doc.extend([item.toXml() for item in self.__items])
         # FIXME: should write safely here
@@ -38,10 +42,12 @@ class BusinessPlan:
             BusinessPlan.__itemsFileName,
             pretty_print=True,
             xml_declaration=True,
-            encoding='UTF-8'
+            encoding="UTF-8",
         )
 
-    def addItem(self, itemType, amount, name, freq):
+    def addItem(
+        self, itemType: int, amount: int, name: str, freq: int
+    ) -> ty.Optional[BusinessPlanItem]:
         try:
             item = BusinessPlanItem(uuid.uuid4(), itemType, amount, name, freq)
             self.__items.append(item)
@@ -51,17 +57,25 @@ class BusinessPlan:
             return None
 
     @property
-    def items(self):
+    def items(self) -> list[BusinessPlanItem]:
         return self.__items
 
     @property
-    def weeklyIncome(self):
-        return sum([item.weeklyValue for item in self.__items if item.type == ItemType.Income])
+    def weeklyIncome(self) -> float:
+        return sum(
+            item.weeklyValue
+            for item in self.__items
+            if item.type == ItemType.Income
+        )
 
     @property
-    def weeklyExpense(self):
-        return sum([item.weeklyValue for item in self.__items if item.type == ItemType.Expense])
+    def weeklyExpense(self) -> float:
+        return sum(
+            item.weeklyValue
+            for item in self.__items
+            if item.type == ItemType.Expense
+        )
 
     @property
-    def weeklyEnvelope(self):
+    def weeklyEnvelope(self) -> float:
         return self.weeklyIncome - self.weeklyExpense

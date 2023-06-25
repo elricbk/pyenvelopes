@@ -1,8 +1,14 @@
-from lxml.builder import E # type: ignore
-from lxml.etree import ElementBase
+from __future__ import annotations
+
 import dataclasses
 
+from lxml.builder import E  # type: ignore
+from lxml.etree import _Element
+
+from lib.utils import unwrap
+
 EnvelopeId = int
+
 
 @dataclasses.dataclass
 class Envelope:
@@ -11,8 +17,12 @@ class Envelope:
     desc: str
 
     @classmethod
-    def fromXml(cls, el: ElementBase) -> 'Envelope':
-        return Envelope(int(el.get("id")), el.get("name"), el.get("desc"))
+    def fromXml(cls, el: _Element) -> Envelope:
+        return Envelope(
+            int(unwrap(el.get("id"))),
+            unwrap(el.get("name")),
+            unwrap(el.get("desc")),
+        )
 
-    def toXml(self) -> ElementBase:
+    def toXml(self) -> _Element:
         return E.Envelope(id=str(self.id), name=self.name, desc=self.desc)
