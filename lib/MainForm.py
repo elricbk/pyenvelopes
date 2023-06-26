@@ -11,14 +11,16 @@ from .BusinessPlan import BusinessPlan
 from .BusinessPlanItem import BusinessPlanItem, Frequency, ItemType
 from .controls.autocompleteedit import SuggestItem
 from .Envelope import Envelope
-from .EnvelopeManager import EnvelopeManager, make_facade
+from .EnvelopeManager import EnvelopeManager
 from .expense import Expense
 from .ExpenseManager import ExpenseManager
 from .ExpenseRule import ExpenseRule
 from .ExpenseRuleManager import ExpenseRuleManager
+from .parse_expense import parse_expense
 from .RulesAppliedManager import RulesAppliedManager
 from .ui_MainForm import Ui_MainWindow
 from .utils import formatValue
+from .well_known_envelope import WellKnownEnvelope
 
 # FIXME: this should be configured somehow
 DAYS_TO_SHOW_THRESHOLD = 28
@@ -146,7 +148,6 @@ class MainForm(QMainWindow):
         self.__bp = BusinessPlan()
         self.__rulesAppliedMgr = RulesAppliedManager()
 
-        self.__expMgr.setEnvelopeManager(make_facade(self.__envMgr))
         self.__envMgr.setExpenseManager(self.__expMgr)
         self.__ruleMgr.setExpenseManager(self.__expMgr)
 
@@ -385,12 +386,35 @@ class MainForm(QMainWindow):
         tw.insertTopLevelItem(0, item)
         return item
 
+    def _expense_from_user_input(self, user_input: str) -> Expense:
+        parsed_expense = parse_expense(user_input)
+        envMgr = self.__envMgr
+        if parsed_expense.from_envelope is WellKnownEnvelope.ThisWeek:
+            parsed_expense.from_envelope = envMgr.currentEnvelope.name
+
+        def get_envelope_id(envelope: WellKnownEnvelope | str) -> int:
+            if isinstance(envelope, WellKnownEnvelope):
+                return envelope.value
+            else:
+                return envMgr.idForEnvName(envelope)
+
+        return Expense(
+            float(parsed_expense.amount),
+            parsed_expense.comment,
+            get_envelope_id(parsed_expense.from_envelope),
+            get_envelope_id(parsed_expense.to_envelope),
+            user_input,
+            True,
+        )
+
     def addExpense(self) -> None:
-        ex = self.__expMgr.addExpense(self.__ui.leExpenseUserInput.text())
+        user_input = self.__ui.leExpenseUserInput.text()
+        expense = self._expense_from_user_input(user_input)
+        self.__expMgr.add_expense(expense)
         tw = self.__ui.twExpenses
-        exp_date = ex.date.date()
+        exp_date = expense.date.date()
         topLevelItem = self.getTopLevelItemForDate(tw, exp_date)
-        self.addItemForExpense(topLevelItem, ex)
+        self.addItemForExpense(topLevelItem, expense)
         self.refreshEnvelopeValues()
         self.__ui.leExpenseUserInput.setText("")
         self.showCurrentEnvelopeValue()

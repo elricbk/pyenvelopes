@@ -14,6 +14,7 @@ from lib.utils import unwrap
 from .Envelope import Envelope, EnvelopeId
 from .envelope_manager_facade import EnvelopeManagerFacade
 from .ExpenseManager import ExpenseManager
+from .well_known_envelope import WellKnownEnvelope
 
 __MAX_WEEKLY_ENVELOPES = 4
 
@@ -61,9 +62,9 @@ class EnvelopeManager:
     __envelopeFileName = os.path.join(settings.data_path, "envelopes.xml")
 
     __envelopes: Dict[EnvelopeId, Envelope] = {
-        1: Envelope(1, "Income", ""),
-        2: Envelope(2, "Expense", ""),
-        3: Envelope(3, "Leftover", ""),
+        WellKnownEnvelope.Income.value: Envelope(1, "Income", ""),
+        WellKnownEnvelope.TrashBin.value: Envelope(2, "Expense", ""),
+        WellKnownEnvelope.Leftover.value: Envelope(3, "Leftover", ""),
     }
 
     def __init__(self) -> None:
@@ -168,20 +169,3 @@ class EnvelopeManager:
                 return v
 
         return self.addEnvelope(envName)
-
-
-class EnvelopeManagerFacadeImpl(EnvelopeManagerFacade):
-    manager: EnvelopeManager
-
-    def __init__(self, manager: EnvelopeManager) -> None:
-        self.manager = manager
-
-    def current_envelope_name(self) -> str:
-        return self.manager.currentEnvelope.name
-
-    def get_id_for_name(self, name: str) -> int:
-        return self.manager.idForEnvName(name)
-
-
-def make_facade(manager: EnvelopeManager) -> EnvelopeManagerFacade:
-    return EnvelopeManagerFacadeImpl(manager)

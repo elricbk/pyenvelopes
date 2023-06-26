@@ -16,13 +16,13 @@ from lib.utils import unwrap
 from .envelope_manager_facade import EnvelopeManagerFacade
 from .expense import Expense
 from .parse_expense import parse_expense
+from .well_known_envelope import WellKnownEnvelope
 
 
 class ExpenseManager:
     __expenseFileName = os.path.join(settings.data_path, "expenses.xml")
 
     __expenses: list[Expense] = []
-    __envMgr: ty.Optional[EnvelopeManagerFacade] = None
 
     def __init__(self) -> None:
         self.__loadSavedExpenses()
@@ -31,25 +31,9 @@ class ExpenseManager:
     def expenses(self) -> list[Expense]:
         return self.__expenses
 
-    def setEnvelopeManager(self, envMgr: EnvelopeManagerFacade) -> None:
-        self.__envMgr = envMgr
-
-    def addExpense(self, user_input: str) -> Expense:
-        expense = parse_expense(user_input)
-        envMgr = unwrap(self.__envMgr)
-        if expense.from_envelope is None:
-            expense.from_envelope = envMgr.current_envelope_name()
-        ex = Expense(
-            float(expense.amount),
-            expense.comment,
-            envMgr.get_id_for_name(expense.from_envelope),
-            envMgr.get_id_for_name(expense.to_envelope),
-            user_input,
-            True,
-        )
-        self.__expenses.append(ex)
+    def add_expense(self, expense: Expense) -> None:
+        self.__expenses.append(expense)
         self.__saveAllExpenses()
-        return ex
 
     def addExpenseForRule(
         self,
