@@ -13,7 +13,6 @@ from lxml.etree import ElementTree, _Element
 from lib import settings
 from lib.utils import unwrap
 
-from .envelope_manager_facade import EnvelopeManagerFacade
 from .expense import Expense
 from .parse_expense import parse_expense
 from .well_known_envelope import WellKnownEnvelope

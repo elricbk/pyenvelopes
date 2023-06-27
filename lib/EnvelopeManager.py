@@ -12,7 +12,6 @@ from lib import settings
 from lib.utils import unwrap
 
 from .Envelope import Envelope, EnvelopeId
-from .envelope_manager_facade import EnvelopeManagerFacade
 from .ExpenseManager import ExpenseManager
 from .well_known_envelope import WellKnownEnvelope
 
