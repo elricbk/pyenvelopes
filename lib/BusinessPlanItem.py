@@ -64,7 +64,7 @@ class BusinessPlanItem:
         itemType: int,  # FIXME: maybe it should be ItemType
         amount: float,
         name: str,
-        freq: int,  # FIXME: maybe it shoule be Frequency
+        freq: int,  # FIXME: maybe it should be Frequency
     ) -> None:
         self.__id = itemId
         self.__type = itemType
