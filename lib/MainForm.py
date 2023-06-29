@@ -1,11 +1,18 @@
-import datetime
+import collections
 import logging
 import typing as ty
+from datetime import date as Date
+from datetime import datetime as DateTime
 
-from PySide6.QtCore import Qt, QTimerEvent
-from PySide6.QtWidgets import (QApplication, QListWidget, QListWidgetItem,
-                               QMainWindow, QMessageBox, QTableWidget,
-                               QTableWidgetItem, QTreeWidget, QTreeWidgetItem)
+from PySide6.QtCore import Qt, QTimerEvent, Slot
+from PySide6.QtWidgets import (
+    QApplication,
+    QMainWindow,
+    QMessageBox,
+    QTableWidget,
+    QTableWidgetItem,
+    QTreeWidgetItem,
+)
 
 from .BusinessPlan import BusinessPlan
 from .BusinessPlanItem import BusinessPlanItem, Frequency, ItemType
@@ -24,7 +31,8 @@ from .well_known_envelope import WellKnownEnvelope
 
 # FIXME: this should be configured somehow
 DAYS_TO_SHOW_THRESHOLD = 28
-# FIXME: this is hardcoded Leftover envelope ID, this should be done not this way
+# FIXME: this is hardcoded Leftover envelope ID, this should be done in some
+#        other way
 LeftoverEnvelopeId = 3
 
 
@@ -41,35 +49,35 @@ class MainForm(QMainWindow):
         super(MainForm, self).__init__(obj)
         self.__ui = Ui_MainWindow()
         self.__ui.setupUi(self)
-        self.setupExpenseTable()
-        self.setupEnvelopeTable()
-        self.setupRulesTable()
-        self.setupPlanTable()
-        self.setupManagers()
-        self.loadExpenses()
-        self.loadEnvelopes()
-        self.loadRules()
-        self.loadBusinessPlan()
-        self.showCurrentEnvelopeValue()
+        self._setup_expense_table()
+        self._setup_envelope_table()
+        self._setup_rules_table()
+        self._setup_plan_table()
+        self._setup_managers()
+        self._load_expenses()
+        self._load_envelopes()
+        self._load_rules()
+        self._load_business_plan()
+        self._show_this_week_envelope()
         self.__ui.twExpenses.setIdToName(self.__envMgr.envNameForId)
-        self.setupAutoCompletion()
+        self._setup_auto_completion()
         # FIXME: config or constant
-        self.applyRulesAutomatically()
+        self._apply_rules_automatically()
         self.startTimer(60 * 60 * 1000)
         self.raise_()
 
-    def setupAutoCompletion(self) -> None:
+    def _setup_auto_completion(self) -> None:
         envelopeList = [self.__envMgr.currentEnvelope]
         for envelope in self.__envMgr.envelopes.values():
-            # FIXME: this is a hack to remove weekly envelopes from autocompletion
+            # FIXME: hack to remove weekly envelopes from autocompletion
             if envelope.name.startswith("Week_"):
                 continue
             envelopeList.append(envelope)
         self.__ui.leExpenseUserInput.setModel(
-            [self.__envelopeToSuggestItem(e) for e in envelopeList]
+            [self._envelope_to_suggest_item(e) for e in envelopeList]
         )
 
-    def __envelopeToSuggestItem(self, env: Envelope) -> SuggestItem:
+    def _envelope_to_suggest_item(self, env: Envelope) -> SuggestItem:
         return SuggestItem(
             displayText="%{0} [{1} руб.]".format(
                 env.name, int(self.__envMgr.envelopeValue(env.id))
@@ -77,39 +85,42 @@ class MainForm(QMainWindow):
             suggestText="%" + env.name,
         )
 
-    def showCurrentEnvelopeValue(self) -> None:
+    def _show_this_week_envelope(self) -> None:
         FORMAT_MESSAGE = "Current envelope ({0}): {1}"
         env = self.__envMgr.currentEnvelope
         value = formatValue(int(self.__envMgr.envelopeValue(env.id)))
         self.__ui.statusbar.showMessage(FORMAT_MESSAGE.format(env.name, value))
 
-    def applyRulesAutomatically(self) -> None:
-        if self.needToApplyRules():
-            # FIXME: there should be transaction here -- all stuff should be done together or not at all
-            self.createEnvelopeForNewWeek()
-            self.transferAllFromLastWeek()
-            self.__ruleMgr.executeAllRules()
-            try:
-                self.markWeekAsRulesApplied()
-            except Exception:
-                QMessageBox.critical(
-                    self,
-                    "Error marking this week as rules applied",
-                    "This error should be fixed manually",
-                )
-                QApplication.quit()
-            self.loadExpenses()
+    def _apply_rules_automatically(self) -> None:
+        if not self._need_to_apply_rules():
+            return
+        # FIXME: there should be transaction here -- all stuff should be done
+        #        together or not at all
+        self._create_envelope_for_new_week()
+        self._transfer_all_from_last_week()
+        self.__ruleMgr.executeAllRules()
+        try:
+            self._mark_week_as_rules_applied()
+        except Exception:
+            QMessageBox.critical(
+                self,
+                "Error marking this week as rules applied",
+                "This error should be fixed manually",
+            )
+            QApplication.quit()
+        self._load_expenses()
 
+    @Slot()
     def timerEvent(self, event: QTimerEvent) -> None:
         logging.debug("Timer event for timer: %d", event.timerId())
-        self.applyRulesAutomatically()
+        self._apply_rules_automatically()
 
-    def markWeekAsRulesApplied(self) -> None:
+    def _mark_week_as_rules_applied(self) -> None:
         self.__rulesAppliedMgr.markWeekAsRulesApplied(
             self.__envMgr.currentEnvelope.name
         )
 
-    def transferAllFromLastWeek(self) -> None:
+    def _transfer_all_from_last_week(self) -> None:
         lwe = self.__envMgr.lastWeekEnvelope
         logging.debug(
             "Transferring all money (%d) from last week (%s)",
@@ -123,7 +134,7 @@ class MainForm(QMainWindow):
             "Transfer from previous week",
         )
 
-    def needToApplyRules(self) -> bool:
+    def _need_to_apply_rules(self) -> bool:
         curEnvName = self.__envMgr.currentEnvelope.name
         logging.debug(
             "Checking if need to apply rules for envelope %s", curEnvName
@@ -132,7 +143,7 @@ class MainForm(QMainWindow):
         logging.debug("Rules should be applied: %s", shouldApply)
         return shouldApply
 
-    def createEnvelopeForNewWeek(self) -> None:
+    def _create_envelope_for_new_week(self) -> None:
         logging.debug("Creating envelope for current week")
         self.__expMgr.addExpenseForRule(
             self.__bp.weeklyEnvelope,
@@ -141,7 +152,7 @@ class MainForm(QMainWindow):
             "Automatic creation of weekly envelope",
         )
 
-    def setupManagers(self) -> None:
+    def _setup_managers(self) -> None:
         self.__expMgr = ExpenseManager()
         self.__envMgr = EnvelopeManager()
         self.__ruleMgr = ExpenseRuleManager()
@@ -151,20 +162,18 @@ class MainForm(QMainWindow):
         self.__envMgr.setExpenseManager(self.__expMgr)
         self.__ruleMgr.setExpenseManager(self.__expMgr)
 
-    def setupExpenseTable(self) -> None:
+    def _setup_expense_table(self) -> None:
         self.__ui.tableWidget_3.setHorizontalHeaderLabels(
-            ["Date", "Value", "From", "To", "Description"]
+            ["Дата", "Сумма", "Из", "В", "Описание"]
         )
 
-    def setupEnvelopeTable(self) -> None:
-        self.__ui.tableWidget_2.setHorizontalHeaderLabels(
-            ["Value", "Envelope name"]
-        )
+    def _setup_envelope_table(self) -> None:
+        self.__ui.tableWidget_2.setHorizontalHeaderLabels(["Сумма", "Название"])
 
-    def setupRulesTable(self) -> None:
-        self.__ui.twRules.setHorizontalHeaderLabels(["Amount", "From", "To"])
+    def _setup_rules_table(self) -> None:
+        self.__ui.twRules.setHorizontalHeaderLabels(["Сумма", "Из", "В"])
 
-    def setupPlanTable(self) -> None:
+    def _setup_plan_table(self) -> None:
         self.__ui.twBusinessPlan.setHorizontalHeaderLabels(
             ["Type", "Amount", "Name", "Description", "Weekly", "Envelope"]
         )
@@ -175,6 +184,7 @@ class MainForm(QMainWindow):
             self.__ui.cbItemFrequency.addItem(Frequency.desc(i), i)
         self.__ui.cbItemFrequency.setCurrentIndex(4)
 
+    @Slot()
     def addBusinessPlanItem(self) -> None:
         try:
             cbType = self.__ui.cbItemType
@@ -188,12 +198,13 @@ class MainForm(QMainWindow):
             )
             if item is None:
                 return
-            self.addRowForPlanItem(item)
+            self._add_row_for_plan_item(item)
             self.__ui.leNewBPItem.setText("")
-            self.showWeeklyStats()
+            self._show_weekly_stats()
         except Exception as e:
             print(e)
 
+    @Slot()
     def applyBusinessPlan(self) -> None:
         self.__bp.save()
         self.__ruleMgr.clearAllRules()
@@ -206,7 +217,7 @@ class MainForm(QMainWindow):
                 print(e)
                 envId = self.__envMgr.addEnvelope(finItem.name).id
             self.__ruleMgr.addRule(finItem.weeklyValue, 3, envId)
-        self.loadRules()
+        self._load_rules()
         bp = self.__bp
         QMessageBox.information(
             self,
@@ -216,152 +227,146 @@ class MainForm(QMainWindow):
             ),
         )
 
-    def clearTable(self, tw: QTableWidget) -> None:
+    def _clear_table(self, tw: QTableWidget) -> None:
         tw.clearContents()
         tw.setRowCount(0)
 
-    def loadBusinessPlan(self) -> None:
+    def _load_business_plan(self) -> None:
         tw = self.__ui.twBusinessPlan
-        self.clearTable(tw)
+        self._clear_table(tw)
         for item in self.__bp.items:
-            self.addRowForPlanItem(item)
+            self._add_row_for_plan_item(item)
         resizeColumnsToContents(tw)
-        self.showWeeklyStats()
+        self._show_weekly_stats()
 
-    def showWeeklyStats(self) -> None:
+    def _show_weekly_stats(self) -> None:
         FORMAT_STRING = (
             "Weekly stats: Income = {0}, Expense = {1}, Envelope = {2}"
         )
         self.__ui.lblWeeklyStats.setText(
             FORMAT_STRING.format(
-                formatValue(self.__bp.weeklyIncome),
-                formatValue(self.__bp.weeklyExpense),
-                formatValue(self.__bp.weeklyEnvelope),
+                formatValue(int(self.__bp.weeklyIncome)),
+                formatValue(int(self.__bp.weeklyExpense)),
+                formatValue(int(self.__bp.weeklyEnvelope)),
             )
         )
 
-    def addRowForPlanItem(self, item: BusinessPlanItem) -> None:
+    def _add_row_for_plan_item(self, item: BusinessPlanItem) -> None:
         tw = self.__ui.twBusinessPlan
         row = tw.rowCount()
         tw.setRowCount(row + 1)
         amount = formatValue(int(item.amount))
         weeklyValue = formatValue(int(item.weeklyValue))
-        tw.setItem(row, 0, self.itemWithId(ItemType.desc(item.type), item.id))
-        tw.setItem(row, 1, self.itemWithId(amount, item.id))
-        tw.setItem(row, 2, self.itemWithId(item.name, item.id))
-        tw.setItem(row, 3, self.itemWithId(Frequency.desc(item.freq), item.id))
-        tw.setItem(row, 4, self.itemWithId(weeklyValue, item.id))
+        tw.setItem(
+            row, 0, self._item_with_id(ItemType.desc(item.type), item.id)
+        )
+        tw.setItem(row, 1, self._item_with_id(amount, item.id))
+        tw.setItem(row, 2, self._item_with_id(item.name, item.id))
+        tw.setItem(
+            row, 3, self._item_with_id(Frequency.desc(item.freq), item.id)
+        )
+        tw.setItem(row, 4, self._item_with_id(weeklyValue, item.id))
         for env in self.__envMgr.envelopes.values():
             if env.name == item.name:
-                tw.setItem(row, 5, self.itemWithId("Existing", item.id))
+                tw.setItem(row, 5, self._item_with_id("Existing", item.id))
                 return
         else:
-            tw.setItem(row, 5, self.itemWithId("New", item.id))
+            tw.setItem(row, 5, self._item_with_id("New", item.id))
 
-    def loadRules(self) -> None:
+    def _load_rules(self) -> None:
         tw = self.__ui.twRules
-        self.clearTable(tw)
+        self._clear_table(tw)
         for rule in self.__ruleMgr.rules:
-            self.addRowForRule(rule)
+            self._add_row_for_rule(rule)
         resizeColumnsToContents(tw)
 
-    def addRowForRule(self, rule: ExpenseRule) -> None:
+    def _add_row_for_rule(self, rule: ExpenseRule) -> None:
         tw = self.__ui.twRules
         row = tw.rowCount()
         tw.setRowCount(row + 1)
-        tw.setItem(row, 0, self.itemWithId(str(rule.amount), rule.id))
+        tw.setItem(row, 0, self._item_with_id(str(rule.amount), rule.id))
         tw.setItem(
             row,
             1,
-            self.itemWithId(self.__envMgr.envNameForId(rule.fromId), rule.id),
+            self._item_with_id(
+                self.__envMgr.envNameForId(rule.fromId), rule.id
+            ),
         )
         tw.setItem(
             row,
             2,
-            self.itemWithId(self.__envMgr.envNameForId(rule.toId), rule.id),
+            self._item_with_id(self.__envMgr.envNameForId(rule.toId), rule.id),
         )
 
+    @Slot()
     def applyRules(self) -> None:
         self.__ruleMgr.executeAllRules()
-        self.loadExpenses()
+        self._load_expenses()
 
-    def loadExpenses(self) -> None:
+    def _load_expenses(self) -> None:
         self.__ui.twExpenses.clear()
-        now = datetime.datetime.now()
-        dates: dict[datetime.date, list[Expense]] = {}
-        for ex in (
+        now = DateTime.now()
+        dates: dict[Date, list[Expense]] = collections.defaultdict(list)
+        for expense in (
             e
             for e in self.__expMgr.expenses
             if (now - e.date).days < DAYS_TO_SHOW_THRESHOLD
         ):
-            date = ex.date.date()
-            if date in dates:
-                dates[date].append(ex)
-            else:
-                dates[date] = [ex]
+            dates[expense.date.date()].append(expense)
         keys = sorted(dates.keys())
         for date in keys:
-            topLevelItem = self.getTopLevelItemForDate(
-                self.__ui.twExpenses, date
-            )
-            for ex in dates[date]:
-                self.addItemForExpense(topLevelItem, ex)
-        self.expandTodayTopLevelItem()
+            topLevelItem = self._get_top_level_item_for_date(date)
+            for expense in dates[date]:
+                self._add_item_for_expense(topLevelItem, expense)
+        self._expand_today_top_level_item()
 
-    def expandTodayTopLevelItem(self) -> None:
+    def _expand_today_top_level_item(self) -> None:
         # Assure that item for today is here and expand it
-        topLevelItem = self.getTopLevelItemForDate(
-            self.__ui.twExpenses, datetime.datetime.now().date()
-        )
+        topLevelItem = self._get_top_level_item_for_date(Date.today())
         self.__ui.twExpenses.expandItem(topLevelItem)
-        # HACK: removes glitch with resizing last column too much (Mac OS 10.7, PySide 1.1)
-        self.__ui.twExpenses.resize(
-            self.__ui.twExpenses.width() - 1, self.__ui.twExpenses.height()
-        )
-        self.__ui.twExpenses.resize(
-            self.__ui.twExpenses.width() + 1, self.__ui.twExpenses.height()
-        )
 
-    def addItemForExpense(
-        self, topLevelItem: QTreeWidgetItem, ex: Expense
+    def _add_item_for_expense(
+        self, topLevelItem: QTreeWidgetItem, expense: Expense
     ) -> None:
-        ex_str = "%-5d %s\n(%s -> %s)" % (
-            ex.value,
-            ex.desc,
-            self.__envMgr.envNameForId(ex.fromId),
-            self.__envMgr.envNameForId(ex.toId),
+        expense_str = "%-5d %s\n(%s -> %s)" % (
+            expense.value,
+            expense.desc,
+            self.__envMgr.envNameForId(expense.fromId),
+            self.__envMgr.envNameForId(expense.toId),
         )
-        ex_item = QTreeWidgetItem([ex_str])
-        ex_item.setText(0, ex_str)
-        ex_item.setData(0, Qt.ItemDataRole.UserRole, ex)
-        topLevelItem.insertChild(0, ex_item)
+        item = QTreeWidgetItem([expense_str])
+        item.setText(0, expense_str)
+        item.setData(0, Qt.ItemDataRole.UserRole, expense)
+        topLevelItem.insertChild(0, item)
 
-    def addRowForExpense(self, tw: QTableWidget, ex: Expense) -> None:
+    def _add_row_for_expense(self, tw: QTableWidget, ex: Expense) -> None:
         row = tw.rowCount()
         tw.setRowCount(row + 1)
         color = Qt.GlobalColor.black if ex.manual else Qt.GlobalColor.gray
         value = formatValue(int(ex.value))
         tw.setItem(
-            row, 0, self.coloredTableWidgetItem(str(ex.date.date()), color, ex)
+            row,
+            0,
+            self._colored_table_widget_item(str(ex.date.date()), color, ex),
         )
-        tw.setItem(row, 1, self.coloredTableWidgetItem(value, color, ex))
+        tw.setItem(row, 1, self._colored_table_widget_item(value, color, ex))
         tw.setItem(
             row,
             2,
-            self.coloredTableWidgetItem(
+            self._colored_table_widget_item(
                 self.__envMgr.envNameForId(ex.fromId), color, ex
             ),
         )
         tw.setItem(
             row,
             3,
-            self.coloredTableWidgetItem(
+            self._colored_table_widget_item(
                 self.__envMgr.envNameForId(ex.toId), color, ex
             ),
         )
-        tw.setItem(row, 4, self.coloredTableWidgetItem(ex.desc, color, ex))
+        tw.setItem(row, 4, self._colored_table_widget_item(ex.desc, color, ex))
 
-    def coloredTableWidgetItem(
+    def _colored_table_widget_item(
         self, text: str, color: Qt.GlobalColor, userData: ty.Any = None
     ) -> QTableWidgetItem:
         item = QTableWidgetItem(text)
@@ -371,11 +376,10 @@ class MainForm(QMainWindow):
             item.setData(Qt.ItemDataRole.UserRole, userData)
         return item
 
-    def getTopLevelItemForDate(
-        self, tw: QTreeWidget, date: datetime.date
-    ) -> QTreeWidgetItem:
-        for i in range(tw.topLevelItemCount()):
-            item = tw.topLevelItem(i)
+    def _get_top_level_item_for_date(self, date: Date) -> QTreeWidgetItem:
+        treeWidget = self.__ui.twExpenses
+        for i in range(treeWidget.topLevelItemCount()):
+            item = treeWidget.topLevelItem(i)
             item_date = item.data(0, Qt.ItemDataRole.UserRole)
             if date == item_date:
                 return item
@@ -383,7 +387,7 @@ class MainForm(QMainWindow):
         item.setData(0, Qt.ItemDataRole.UserRole, date)
         item.setText(0, (date.strftime("%A, %-d %B")))
         # FIXME: do we always need to insert at zero idx?
-        tw.insertTopLevelItem(0, item)
+        treeWidget.insertTopLevelItem(0, item)
         return item
 
     def _expense_from_user_input(self, user_input: str) -> Expense:
@@ -407,62 +411,59 @@ class MainForm(QMainWindow):
             True,
         )
 
+    @Slot()
     def addExpense(self) -> None:
         user_input = self.__ui.leExpenseUserInput.text()
         expense = self._expense_from_user_input(user_input)
         self.__expMgr.add_expense(expense)
-        tw = self.__ui.twExpenses
         exp_date = expense.date.date()
-        topLevelItem = self.getTopLevelItemForDate(tw, exp_date)
-        self.addItemForExpense(topLevelItem, expense)
-        self.refreshEnvelopeValues()
+        topLevelItem = self._get_top_level_item_for_date(exp_date)
+        self._add_item_for_expense(topLevelItem, expense)
+        self._refresh_envelope_values()
         self.__ui.leExpenseUserInput.setText("")
-        self.showCurrentEnvelopeValue()
-        self.expandTodayTopLevelItem()
+        self._show_this_week_envelope()
+        self._expand_today_top_level_item()
 
+    @Slot()
     def deleteExpense(self) -> None:
-        tw = self.__ui.twExpenses
+        treeWidget = self.__ui.twExpenses
         items = [
-            i for i in tw.selectedItems() if tw.indexOfTopLevelItem(i) == -1
+            i
+            for i in treeWidget.selectedItems()
+            if treeWidget.indexOfTopLevelItem(i) == -1
         ]
-        if len(items) > 0:
-            res = QMessageBox.question(
-                self,
-                "Confirmation",
-                "Are you sure you want to delete this expense?",
-                QMessageBox.StandardButton.Ok,
-                QMessageBox.StandardButton.Cancel,
-            )
-            if res == QMessageBox.StandardButton.Ok:
-                expenses = set(
-                    i.data(0, Qt.ItemDataRole.UserRole) for i in items
-                )
-                for expense in expenses:
-                    self.__expMgr.deleteExpense(expense)
-                self.refreshEnvelopeValues()
-                self.showCurrentEnvelopeValue()
-                # FIXME: fix parent's text
-                for item in items:
-                    parent = item.parent()
-                    idx = parent.indexOfChild(item)
-                    parent.takeChild(idx)
-                    if parent.childCount() == 0:
-                        topLevelIdx = tw.indexOfTopLevelItem(parent)
-                        tw.takeTopLevelItem(topLevelIdx)
-                # self.loadExpenses()
-                # self.scrollToLastExpenseRow()
+        if len(items) == 0:
+            return
 
+        res = QMessageBox.question(
+            self,
+            "Confirmation",
+            "Are you sure you want to delete this expense?",
+            QMessageBox.StandardButton.Ok,
+            QMessageBox.StandardButton.Cancel,
+        )
+        if res == QMessageBox.StandardButton.Ok:
+            expenses = set(i.data(0, Qt.ItemDataRole.UserRole) for i in items)
+            for expense in expenses:
+                self.__expMgr.deleteExpense(expense)
+            self._refresh_envelope_values()
+            self._show_this_week_envelope()
+            # FIXME: fix parent's text
+            for item in items:
+                parent = item.parent()
+                idx = parent.indexOfChild(item)
+                parent.takeChild(idx)
+                if parent.childCount() == 0:
+                    topLevelIdx = treeWidget.indexOfTopLevelItem(parent)
+                    treeWidget.takeTopLevelItem(topLevelIdx)
+
+    @Slot()
     def reloadValues(self) -> None:
-        self.refreshEnvelopeValues()
-        self.loadExpenses()
-        self.showCurrentEnvelopeValue()
-        # self.scrollToLastExpenseRow()
+        self._refresh_envelope_values()
+        self._load_expenses()
+        self._show_this_week_envelope()
 
-    def scrollToLastExpenseRow(self) -> None:
-        tw = self.__ui.twExpenses
-        item = tw.item(tw.rowCount() - 1, 0)
-        tw.scrollToItem(item)
-
+    @Slot()
     def addEnvelope(self) -> None:
         env_name = self.__ui.leNewEnvelope.text().strip().lower()
         if env_name in (
@@ -477,51 +478,52 @@ class MainForm(QMainWindow):
             env = self.__envMgr.addEnvelope(
                 env_name, "some envelope description here"
             )
-            self.addRowForEnvelope(env)
+            self._add_row_for_envelope(env)
             self.__ui.leNewEnvelope.setText("")
-            self.setupAutoCompletion()
-        except Exception as e:
+            self._setup_auto_completion()
+        except Exception:
             logging.exception("Error while adding envelope")
 
-    def refreshEnvelopeValues(self) -> None:
+    def _refresh_envelope_values(self) -> None:
         tw = self.__ui.tableWidget_2
         for row in range(tw.rowCount()):
             item = tw.item(row, 0)
             envId = int(item.data(Qt.ItemDataRole.UserRole))
             item.setText(formatValue(int(self.__envMgr.envelopeValue(envId))))
-        self.setupAutoCompletion()
+        self._setup_auto_completion()
 
-    def loadEnvelopes(self) -> None:
+    def _load_envelopes(self) -> None:
         for env in self.__envMgr.envelopes.values():
-            self.addRowForEnvelope(env)
+            self._add_row_for_envelope(env)
         resizeColumnsToContents(self.__ui.tableWidget_2)
 
-    def addRowForEnvelope(self, env: Envelope) -> None:
+    def _add_row_for_envelope(self, env: Envelope) -> None:
         tw = self.__ui.tableWidget_2
         row = tw.rowCount()
         tw.setRowCount(row + 1)
         value = formatValue(int(self.__envMgr.envelopeValue(env.id)))
-        tw.setItem(row, 0, self.itemWithId(value, env.id))
-        tw.setItem(row, 1, self.itemWithId(env.name, env.id))
+        tw.setItem(row, 0, self._item_with_id(value, env.id))
+        tw.setItem(row, 1, self._item_with_id(env.name, env.id))
 
-    def itemWithId(self, itemText: str, itemId: ty.Any) -> QTableWidgetItem:
+    def _item_with_id(self, itemText: str, itemId: ty.Any) -> QTableWidgetItem:
         item = QTableWidgetItem(itemText)
         item.setData(Qt.ItemDataRole.UserRole, itemId)
         return item
 
+    @Slot()
     def onSelectedEnvelopeChanged(
         self, curItem: QTableWidgetItem, prevItem: QTableWidgetItem
     ) -> None:
-        self.fillDetailTable(int(curItem.data(Qt.ItemDataRole.UserRole)))
+        self.fill_detail_table(int(curItem.data(Qt.ItemDataRole.UserRole)))
 
-    def fillDetailTable(self, envId: int) -> None:
+    def fill_detail_table(self, envId: int) -> None:
         tw = self.__ui.tableWidget_3
         tw.setSortingEnabled(False)
         tw.clearContents()
         tw.setRowCount(0)
         for ex in self.__expMgr.expenses:
             if (ex.fromId == envId) or (ex.toId == envId):
-                self.addRowForExpense(tw, ex)
+                self._add_row_for_expense(tw, ex)
         tw.setSortingEnabled(True)
         tw.sortByColumn(0, Qt.SortOrder.DescendingOrder)
         resizeColumnsToContents(tw)

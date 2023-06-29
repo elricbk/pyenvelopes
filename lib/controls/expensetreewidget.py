@@ -1,17 +1,26 @@
 # coding=utf-8
 
-import logging
 import re
 import typing as ty
 
+from PySide6.QtCore import (
+    QModelIndex,
+    QPersistentModelIndex,
+    QRect,
+    QRectF,
+    QSize,
+    Qt,
+)
+from PySide6.QtGui import QColor, QFontMetrics, QPainter
+from PySide6.QtWidgets import (
+    QAbstractItemDelegate,
+    QStyledItemDelegate,
+    QStyleOptionViewItem,
+    QTreeWidget,
+)
+
 from lib.controls.pastel_colors import PastelColors
 from lib.utils import formatValue
-from PySide6.QtCore import (QModelIndex, QObject, QPersistentModelIndex,
-                            QPoint, QRect, QRectF, QSize, Qt)
-from PySide6.QtGui import QColor, QFontMetrics, QPainter
-from PySide6.QtWidgets import (QAbstractItemDelegate, QStyle,
-                               QStyledItemDelegate, QStyleOptionViewItem,
-                               QTreeWidget)
 
 from ..expense import Expense
 
@@ -33,7 +42,8 @@ class ExpensesItemDelegate(QStyledItemDelegate):
         size = self._delegate.sizeHint(option, index)
         if index.parent().isValid():
             expense: Expense = index.data(Qt.ItemDataRole.UserRole)
-            # For some reason PySide6 typing is missing `fontMetrics` from `QStyleOption`
+            # For some reason PySide6 typing is missing `fontMetrics` from
+            # `QStyleOption`
             fontMetrics: QFontMetrics = ty.cast(ty.Any, option).fontMetrics
             height = (
                 fontMetrics.boundingRect(expense.desc).height() * 2
@@ -91,7 +101,7 @@ class ExpenseTreeWidget(QTreeWidget):
         painter.drawLine(rect.bottomLeft(), rect.bottomRight())
         painter.setPen(QColor(Qt.GlobalColor.lightGray).lighter())
         painter.drawLine(rect.topLeft(), rect.topRight())
-        ex: Expense = index.data(Qt.ItemDataRole.UserRole)
+        expense: Expense = index.data(Qt.ItemDataRole.UserRole)
         painter.setPen(Qt.GlobalColor.black)
         painter.save()
         font = painter.font()
@@ -100,14 +110,14 @@ class ExpenseTreeWidget(QTreeWidget):
         painter.drawText(
             rect.adjusted(LEFT_MARGIN, 0, 0, -rect.height() // 2),
             Qt.AlignmentFlag.AlignVCenter,
-            ex.desc,
+            expense.desc,
         )
         painter.restore()
         painter.setPen(Qt.GlobalColor.darkGray)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         cleanupEmojis = lambda it: re.sub(r"[\u263a-\U0001f645]", "", it)
         if self._idToName is not None:
-            fromName = self._idToName(ex.fromId)
+            fromName = self._idToName(expense.fromId)
             fromRectH = painter.fontMetrics().boundingRect(
                 cleanupEmojis(fromName)
             )
@@ -137,8 +147,9 @@ class ExpenseTreeWidget(QTreeWidget):
             )
 
             painter.save()
-            # FIXME: normal check for weekly and income envelopes, colors to constants
-            if not ex.manual:
+            # FIXME: normal check for weekly and income envelopes
+            # FIXME: move colors to constants
+            if not expense.manual:
                 painter.setBrush(QColor(157, 157, 157))
             elif fromName.startswith("Week_"):
                 painter.setBrush(Qt.GlobalColor.transparent)
@@ -151,7 +162,7 @@ class ExpenseTreeWidget(QTreeWidget):
             painter.restore()
 
             bottomRect = bottomRect.adjusted(fromRect.width() + MARGIN, 0, 0, 0)
-            toName = self._idToName(ex.toId)
+            toName = self._idToName(expense.toId)
             toRectH = painter.fontMetrics().boundingRect(cleanupEmojis(toName))
             toRectW = painter.fontMetrics().boundingRect(toName)
             toRect = QRect(
@@ -181,7 +192,7 @@ class ExpenseTreeWidget(QTreeWidget):
         painter.drawText(
             rect.adjusted(rect.width() // 2, 0, -5, 0),
             Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter,
-            formatValue(int(ex.value)),
+            formatValue(int(expense.value)),
         )
         painter.restore()
 
@@ -194,7 +205,8 @@ class ExpenseTreeWidget(QTreeWidget):
             if expense.manual:
                 if self._idToName is not None:
                     fromName = self._idToName(expense.fromId)
-                    # FIXME: there should be a better way to check for weekly envelope
+                    # FIXME: there should be a better way to check for the
+                    #        weekly envelope
                     if not fromName.startswith("Week_"):
                         idx += 1
                         child = index.model().index(idx, 0, index)

@@ -1,6 +1,5 @@
 import re
 from dataclasses import dataclass
-from typing import Optional
 
 from .well_known_envelope import WellKnownEnvelope
 

@@ -126,7 +126,8 @@ class EnvelopeManager:
             if envName.lower() == v.name.lower():
                 return k
         raise Exception(
-            f'No envelope with name "{envName}", known envelopes: {self.__envelopes}'
+            f'No envelope with name "{envName}", '
+            f"known envelopes: {self.__envelopes}"
         )
 
     def envNameForId(self, envId: EnvelopeId) -> str:

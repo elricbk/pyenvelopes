@@ -9,7 +9,7 @@ from lxml.etree import _Element
 
 from lib import settings
 
-from .BusinessPlanItem import BusinessPlanItem, Frequency, ItemType
+from .BusinessPlanItem import BusinessPlanItem, ItemType
 
 
 class BusinessPlan:
