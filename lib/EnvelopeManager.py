@@ -1,6 +1,5 @@
 import datetime
 import logging
-import os
 import typing as ty
 from typing import Dict
 
@@ -8,7 +7,6 @@ from lxml import etree
 from lxml.builder import E  # type: ignore
 from lxml.etree import _Element
 
-from lib import settings
 from lib.utils import unwrap
 
 from .Envelope import Envelope, EnvelopeId
@@ -58,16 +56,15 @@ def filterWeeklyEnvelopes(
 
 
 class EnvelopeManager:
-    __envelopeFileName = os.path.join(settings.data_path, "envelopes.xml")
-
     __envelopes: Dict[EnvelopeId, Envelope] = {
         WellKnownEnvelope.Income.value: Envelope(1, "Income", ""),
         WellKnownEnvelope.TrashBin.value: Envelope(2, "Expense", ""),
         WellKnownEnvelope.Leftover.value: Envelope(3, "Leftover", ""),
     }
 
-    def __init__(self) -> None:
+    def __init__(self, fname: str) -> None:
         self.__expMgr: ty.Optional[ExpenseManager] = None
+        self._fname = fname
         self.__loadSavedEnvelopes()
 
     def __maxId(self) -> EnvelopeId:
@@ -92,14 +89,12 @@ class EnvelopeManager:
         doc = E.Envelopes()
         doc.extend([env.toXml() for env in self.__envelopes.values()])
         etree.ElementTree(doc).write(
-            EnvelopeManager.__envelopeFileName,
-            pretty_print=True,
-            encoding="utf-8",
+            self._fname, pretty_print=True, encoding="utf-8"
         )
 
     def __loadSavedEnvelopes(self) -> None:
         try:
-            doc = etree.parse(EnvelopeManager.__envelopeFileName)
+            doc = etree.parse(self._fname)
         except Exception as e:
             print(e)
             return

@@ -1,5 +1,4 @@
 import logging
-import os
 import typing as ty
 import uuid
 
@@ -7,21 +6,19 @@ from lxml import etree
 from lxml.builder import E  # type: ignore
 from lxml.etree import _Element
 
-from lib import settings
-
 from .ExpenseManager import ExpenseManager
 from .ExpenseRule import ExpenseRule
 
 
 class ExpenseRuleManager:
-    __ruleFileName = os.path.join(settings.data_path, "rules.xml")
     __instance = None
 
     __expMgr: ExpenseManager
     __rules: list[ExpenseRule]
 
-    def __init__(self) -> None:
+    def __init__(self, fname: str) -> None:
         self.__rules = []
+        self._fname = fname
         self.__loadSavedRules()
 
     def setExpenseManager(self, expMgr: ExpenseManager) -> None:
@@ -33,7 +30,7 @@ class ExpenseRuleManager:
 
     def __loadSavedRules(self) -> None:
         try:
-            doc = etree.parse(ExpenseRuleManager.__ruleFileName)
+            doc = etree.parse(self._fname)
         except Exception:
             logging.exception("Exception while reading ExpenseRule datafile")
             return
@@ -68,7 +65,7 @@ class ExpenseRuleManager:
     def __saveAllRules(self) -> None:
         doc = E.ExpenseRules()
         doc.extend([rule.toXml() for rule in self.__rules])
-        fname = ExpenseRuleManager.__ruleFileName
+        fname = self._fname
         etree.ElementTree(doc).write(fname, encoding="utf-8", pretty_print=True)
 
     def executeRule(self, ruleId: uuid.UUID) -> None:

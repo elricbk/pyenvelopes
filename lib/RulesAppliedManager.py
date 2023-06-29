@@ -1,5 +1,4 @@
 import logging
-import os
 import shutil
 import typing as ty
 
@@ -7,22 +6,17 @@ import lxml.etree as etree
 from lxml.builder import E  # type: ignore
 from lxml.etree import _Element
 
-from lib import settings
-
 
 class RulesAppliedManager:
-    __fileName = os.path.join(settings.data_path, "rules_applied.xml")
-
-    def __init__(self) -> None:
+    def __init__(self, fname: str) -> None:
         self.__items: list[str] = []
+        self._fname = fname
         self.__loadAppliedRules()
 
     def __loadAppliedRules(self) -> None:
-        logging.debug(
-            "Loading AppliedRules file: %s", RulesAppliedManager.__fileName
-        )
+        logging.debug("Loading AppliedRules file: %s", self._fname)
         try:
-            doc = etree.parse(RulesAppliedManager.__fileName)
+            doc = etree.parse(self._fname)
         except Exception:
             logging.exception("Exception while reading AppliedRules data")
             return
@@ -40,10 +34,10 @@ class RulesAppliedManager:
     def __save(self) -> None:
         doc = E.RulesApplied()
         doc.extend([E.Item(weekId=item) for item in self.__items])
-        tmpFileName = RulesAppliedManager.__fileName + ".temp"
+        tmpFileName = self._fname + ".temp"
         try:
             etree.ElementTree(doc).write(tmpFileName, pretty_print=True)
-            shutil.move(tmpFileName, RulesAppliedManager.__fileName)
+            shutil.move(tmpFileName, self._fname)
         except Exception:
             logging.exception(
                 "Exception while saving applied rules information"

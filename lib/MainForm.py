@@ -1,5 +1,6 @@
 import collections
 import logging
+import os
 import typing as ty
 from datetime import date as Date
 from datetime import datetime as DateTime
@@ -45,7 +46,7 @@ def resizeColumnsToContents(tw: QTableWidget) -> None:
 
 
 class MainForm(QMainWindow):
-    def __init__(self, obj: ty.Any = None) -> None:
+    def __init__(self, data_path: str, obj: ty.Any = None) -> None:
         super(MainForm, self).__init__(obj)
         self.__ui = Ui_MainWindow()
         self.__ui.setupUi(self)
@@ -53,7 +54,7 @@ class MainForm(QMainWindow):
         self._setup_envelope_table()
         self._setup_rules_table()
         self._setup_plan_table()
-        self._setup_managers()
+        self._setup_managers(data_path)
         self._load_expenses()
         self._load_envelopes()
         self._load_rules()
@@ -152,12 +153,15 @@ class MainForm(QMainWindow):
             "Automatic creation of weekly envelope",
         )
 
-    def _setup_managers(self) -> None:
-        self.__expMgr = ExpenseManager()
-        self.__envMgr = EnvelopeManager()
-        self.__ruleMgr = ExpenseRuleManager()
-        self.__bp = BusinessPlan()
-        self.__rulesAppliedMgr = RulesAppliedManager()
+    def _setup_managers(self, data_path: str) -> None:
+        path_to = lambda it: os.path.join(data_path, it)
+        self.__expMgr = ExpenseManager(path_to("expenses.xml"))
+        self.__envMgr = EnvelopeManager(path_to("envelopes.xml"))
+        self.__ruleMgr = ExpenseRuleManager(path_to("rules.xml"))
+        self.__bp = BusinessPlan(path_to("business_plan.xml"))
+        self.__rulesAppliedMgr = RulesAppliedManager(
+            path_to("rules_applied.xml")
+        )
 
         self.__envMgr.setExpenseManager(self.__expMgr)
         self.__ruleMgr.setExpenseManager(self.__expMgr)

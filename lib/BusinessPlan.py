@@ -1,5 +1,4 @@
 import logging
-import os
 import typing as ty
 import uuid
 
@@ -7,21 +6,18 @@ import lxml.etree as etree
 from lxml.builder import E  # type: ignore
 from lxml.etree import _Element
 
-from lib import settings
-
 from .BusinessPlanItem import BusinessPlanItem, ItemType
 
 
 class BusinessPlan:
-    __itemsFileName = os.path.join(settings.data_path, "business_plan.xml")
-
-    def __init__(self) -> None:
+    def __init__(self, fname: str) -> None:
         self.__items: list[BusinessPlanItem] = []
+        self._fname = fname
         self.__load()
 
     def __load(self) -> None:
         try:
-            doc = etree.parse(BusinessPlan.__itemsFileName)
+            doc = etree.parse(self._fname)
         except Exception:
             logging.exception("Exception while reading business plan data")
             return
@@ -39,7 +35,7 @@ class BusinessPlan:
         doc.extend([item.toXml() for item in self.__items])
         # FIXME: should write safely here
         etree.ElementTree(doc).write(
-            BusinessPlan.__itemsFileName,
+            self._fname,
             pretty_print=True,
             xml_declaration=True,
             encoding="UTF-8",

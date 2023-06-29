@@ -1,4 +1,3 @@
-import os
 import shutil
 import typing as ty
 
@@ -6,17 +5,14 @@ from lxml import etree
 from lxml.builder import E  # type: ignore
 from lxml.etree import ElementTree, _Element
 
-from lib import settings
-
 from .expense import Expense
 
 
 class ExpenseManager:
-    __expenseFileName = os.path.join(settings.data_path, "expenses.xml")
-
     __expenses: list[Expense] = []
 
-    def __init__(self) -> None:
+    def __init__(self, fname: str) -> None:
+        self._fname = fname
         self.__loadSavedExpenses()
 
     @property
@@ -45,7 +41,7 @@ class ExpenseManager:
 
     def __loadSavedExpenses(self) -> None:
         try:
-            doc = etree.parse(ExpenseManager.__expenseFileName)
+            doc = etree.parse(self._fname)
         except Exception as e:
             print(e)
             return
@@ -59,7 +55,7 @@ class ExpenseManager:
     def __saveAllExpenses(self) -> None:
         doc = E.Expenses()
         doc.extend([ex.toXml() for ex in self.__expenses])
-        fname = ExpenseManager.__expenseFileName
+        fname = self._fname
         tmpFileName = fname + ".temp"
         ElementTree(doc).write(tmpFileName, encoding="utf-8", pretty_print=True)
         shutil.move(tmpFileName, fname)

@@ -14,7 +14,7 @@ if __name__ == "__main__":
     )
 
     app = QApplication(sys.argv)
-    w = MainForm()
+    w = MainForm(sys.argv[-1])
     w.show()
 
     app.exec()
