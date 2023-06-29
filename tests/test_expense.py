@@ -2,8 +2,9 @@ import datetime
 import unittest
 import uuid
 
-from lib.expense import Expense
 from lxml import etree
+
+from lib.expense import Expense
 
 
 def test_ctor__given_no_id__generates_some() -> None:

@@ -1,6 +1,7 @@
 import unittest
 
 import pytest
+
 from lib.parse_expense import ParsedExpense, parse_expense
 from lib.well_known_envelope import WellKnownEnvelope
 
