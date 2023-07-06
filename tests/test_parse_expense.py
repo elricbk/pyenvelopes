@@ -1,5 +1,3 @@
-import unittest
-
 import pytest
 
 from lib.parse_expense import ParsedExpense, parse_expense

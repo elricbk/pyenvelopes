@@ -1,6 +1,6 @@
 from lxml import etree
 
-from lib.Envelope import Envelope
+from lib.models.envelope import Envelope
 
 
 def test_to_xml__always__serializes_envelope() -> None:
