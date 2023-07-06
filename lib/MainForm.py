@@ -15,17 +15,17 @@ from PySide6.QtWidgets import (
     QTreeWidgetItem,
 )
 
-from .BusinessPlan import BusinessPlan
-from .BusinessPlanItem import BusinessPlanItem, Frequency, ItemType
 from .controls.autocompleteedit import SuggestItem
-from .Envelope import Envelope
-from .EnvelopeManager import EnvelopeManager
-from .expense import Expense
-from .ExpenseManager import ExpenseManager
-from .ExpenseRule import ExpenseRule
-from .ExpenseRuleManager import ExpenseRuleManager
+from .models.business_plan_item import BusinessPlanItem, Frequency, ItemType
+from .models.envelope import Envelope
+from .models.expense import Expense
+from .models.expense_rule import ExpenseRule
 from .parse_expense import parse_expense
-from .RulesAppliedManager import RulesAppliedManager
+from .repositories.applied_rules import AppliedRulesRepository
+from .repositories.business_plan import BusinessPlan
+from .repositories.envelope import EnvelopeRepository
+from .repositories.expense import ExpenseRepository
+from .repositories.expense_rule import ExpenseRuleRepository
 from .ui_MainForm import Ui_MainWindow
 from .utils import formatValue
 from .well_known_envelope import WellKnownEnvelope
@@ -155,11 +155,11 @@ class MainForm(QMainWindow):
 
     def _setup_managers(self, data_path: str) -> None:
         path_to = lambda it: os.path.join(data_path, it)
-        self.__expMgr = ExpenseManager(path_to("expenses.xml"))
-        self.__envMgr = EnvelopeManager(path_to("envelopes.xml"))
-        self.__ruleMgr = ExpenseRuleManager(path_to("rules.xml"))
+        self.__expMgr = ExpenseRepository(path_to("expenses.xml"))
+        self.__envMgr = EnvelopeRepository(path_to("envelopes.xml"))
+        self.__ruleMgr = ExpenseRuleRepository(path_to("rules.xml"))
         self.__bp = BusinessPlan(path_to("business_plan.xml"))
-        self.__rulesAppliedMgr = RulesAppliedManager(
+        self.__rulesAppliedMgr = AppliedRulesRepository(
             path_to("rules_applied.xml")
         )
 
@@ -206,6 +206,7 @@ class MainForm(QMainWindow):
             self.__ui.leNewBPItem.setText("")
             self._show_weekly_stats()
         except Exception as e:
+            logging.exception("Error while adding BusinessPlanItem")
             print(e)
 
     @Slot()

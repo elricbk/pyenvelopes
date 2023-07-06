@@ -6,14 +6,15 @@ from lxml import etree
 from lxml.builder import E  # type: ignore
 from lxml.etree import _Element
 
-from .ExpenseManager import ExpenseManager
-from .ExpenseRule import ExpenseRule
+from lib.models.expense_rule import ExpenseRule
+
+from .expense import ExpenseRepository
 
 
-class ExpenseRuleManager:
+class ExpenseRuleRepository:
     __instance = None
 
-    __expMgr: ExpenseManager
+    __expMgr: ExpenseRepository
     __rules: list[ExpenseRule]
 
     def __init__(self, fname: str) -> None:
@@ -21,7 +22,7 @@ class ExpenseRuleManager:
         self._fname = fname
         self.__loadSavedRules()
 
-    def setExpenseManager(self, expMgr: ExpenseManager) -> None:
+    def setExpenseManager(self, expMgr: ExpenseRepository) -> None:
         self.__expMgr = expMgr
 
     @property

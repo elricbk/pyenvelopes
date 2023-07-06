@@ -5,10 +5,10 @@ from lxml import etree
 from lxml.builder import E  # type: ignore
 from lxml.etree import ElementTree, _Element
 
-from .expense import Expense
+from lib.models.expense import Expense
 
 
-class ExpenseManager:
+class ExpenseRepository:
     __expenses: list[Expense] = []
 
     def __init__(self, fname: str) -> None:

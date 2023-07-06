@@ -7,11 +7,11 @@ from lxml import etree
 from lxml.builder import E  # type: ignore
 from lxml.etree import _Element
 
+from lib.models.envelope import Envelope, EnvelopeId
 from lib.utils import unwrap
+from lib.well_known_envelope import WellKnownEnvelope
 
-from .Envelope import Envelope, EnvelopeId
-from .ExpenseManager import ExpenseManager
-from .well_known_envelope import WellKnownEnvelope
+from .expense import ExpenseRepository
 
 __MAX_WEEKLY_ENVELOPES = 4
 
@@ -55,7 +55,7 @@ def filterWeeklyEnvelopes(
     return result
 
 
-class EnvelopeManager:
+class EnvelopeRepository:
     __envelopes: Dict[EnvelopeId, Envelope] = {
         WellKnownEnvelope.Income.value: Envelope(1, "Income", ""),
         WellKnownEnvelope.TrashBin.value: Envelope(2, "Expense", ""),
@@ -63,14 +63,14 @@ class EnvelopeManager:
     }
 
     def __init__(self, fname: str) -> None:
-        self.__expMgr: ty.Optional[ExpenseManager] = None
+        self.__expMgr: ty.Optional[ExpenseRepository] = None
         self._fname = fname
         self.__loadSavedEnvelopes()
 
     def __maxId(self) -> EnvelopeId:
         return max(self.__envelopes.keys())
 
-    def setExpenseManager(self, expMgr: ExpenseManager) -> None:
+    def setExpenseManager(self, expMgr: ExpenseRepository) -> None:
         self.__expMgr = expMgr
 
     def addEnvelope(self, name: str, desc: str = "") -> Envelope:

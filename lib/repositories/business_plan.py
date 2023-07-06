@@ -6,7 +6,7 @@ import lxml.etree as etree
 from lxml.builder import E  # type: ignore
 from lxml.etree import _Element
 
-from .BusinessPlanItem import BusinessPlanItem, ItemType
+from lib.models.business_plan_item import BusinessPlanItem, ItemType
 
 
 class BusinessPlan:

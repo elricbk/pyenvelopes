@@ -7,7 +7,7 @@ from lxml.builder import E  # type: ignore
 from lxml.etree import _Element
 
 
-class RulesAppliedManager:
+class AppliedRulesRepository:
     def __init__(self, fname: str) -> None:
         self.__items: list[str] = []
         self._fname = fname

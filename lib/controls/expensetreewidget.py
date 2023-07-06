@@ -20,9 +20,8 @@ from PySide6.QtWidgets import (
 )
 
 from lib.controls.pastel_colors import PastelColors
+from lib.models.expense import Expense
 from lib.utils import formatValue
-
-from ..expense import Expense
 
 LINE_SPACING: ty.Final = 4
 MARGIN: ty.Final = 7
