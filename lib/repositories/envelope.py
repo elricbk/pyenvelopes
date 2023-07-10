@@ -1,7 +1,6 @@
 import datetime
 import logging
 import typing as ty
-from typing import Dict
 
 from lxml import etree
 from lxml.builder import E  # type: ignore
@@ -16,14 +15,14 @@ from .expense import ExpenseRepository
 __MAX_WEEKLY_ENVELOPES = 4
 
 
-def __tryInt(s: str) -> ty.Optional[int]:
+def _try_parse_int(s: str) -> ty.Optional[int]:
     try:
         return int(s)
     except Exception:
         return None
 
 
-def __tryParseWeeklyEnvelope(
+def _try_parse_weekly_envelope(
     envelope: Envelope,
 ) -> tuple[ty.Optional[int], ty.Optional[int]]:
     name_parts = envelope.name.split("_")
@@ -32,67 +31,73 @@ def __tryParseWeeklyEnvelope(
     if name_parts[0] != "Week":
         return (None, None)
 
-    year = __tryInt(name_parts[1])
-    week = __tryInt(name_parts[2])
+    year = _try_parse_int(name_parts[1])
+    week = _try_parse_int(name_parts[2])
 
     return (year, week)
 
 
-def filterWeeklyEnvelopes(
+def _filter_weekly_envelopes(
     envelopes: dict[EnvelopeId, Envelope],
 ) -> dict[EnvelopeId, Envelope]:
     result = {}
-    weeklyEnvelopeList = []
+    weekly_envelopes = []
     for envelope in envelopes.values():
-        year, week = __tryParseWeeklyEnvelope(envelope)
+        year, week = _try_parse_weekly_envelope(envelope)
         if year is None or week is None:
             result[envelope.id] = envelope
         else:
-            weeklyEnvelopeList.append((year, week, envelope))
-    weeklyEnvelopeList.sort(reverse=True)
-    for _, _, envelope in weeklyEnvelopeList[:__MAX_WEEKLY_ENVELOPES]:
+            weekly_envelopes.append((year, week, envelope))
+    weekly_envelopes.sort(reverse=True)
+    for _, _, envelope in weekly_envelopes[:__MAX_WEEKLY_ENVELOPES]:
         result[envelope.id] = envelope
     return result
 
 
+def _week_envelope_name(iso_date: tuple) -> str:
+    year = iso_date[0]
+    week_number = iso_date[1]
+    return f"Week_{year}_{week_number}"
+
+
 class EnvelopeRepository:
-    __envelopes: Dict[EnvelopeId, Envelope] = {
+    _envelopes: dict[EnvelopeId, Envelope] = {
         WellKnownEnvelope.Income.value: Envelope(1, "Income", ""),
         WellKnownEnvelope.TrashBin.value: Envelope(2, "Expense", ""),
         WellKnownEnvelope.Leftover.value: Envelope(3, "Leftover", ""),
     }
 
     def __init__(self, fname: str) -> None:
-        self.__expMgr: ty.Optional[ExpenseRepository] = None
+        self._expense_repository: ty.Optional[ExpenseRepository] = None
         self._fname = fname
-        self.__loadSavedEnvelopes()
+        self._load()
 
-    def __maxId(self) -> EnvelopeId:
-        return max(self.__envelopes.keys())
+    def _max_id(self) -> EnvelopeId:
+        return max(self._envelopes.keys())
 
-    def setExpenseManager(self, expMgr: ExpenseRepository) -> None:
-        self.__expMgr = expMgr
+    def set_expense_repository(self, expenses: ExpenseRepository) -> None:
+        self._expense_repository = expenses
 
-    def addEnvelope(self, name: str, desc: str = "") -> Envelope:
+    def add_envelope(self, name: str, desc: str = "") -> Envelope:
         logging.info(
-            "Adding envelope with name %s, id will be %d", name, self.__maxId()
+            "Adding envelope with name %s, id will be %d", name, self._max_id()
         )
         # FIXME: disallow creation of envelopes with spaces
         if name.lower() in (v.name.lower() for v in self.envelopes.values()):
             raise RuntimeError("Envelope with given name already exists")
-        e = Envelope(self.__maxId() + 1, name, desc)
-        self.__envelopes[e.id] = e
-        self.__saveAllEnvelopes()
+        e = Envelope(self._max_id() + 1, name, desc)
+        self._envelopes[e.id] = e
+        self._save()
         return e
 
-    def __saveAllEnvelopes(self) -> None:
+    def _save(self) -> None:
         doc = E.Envelopes()
-        doc.extend([env.to_xml() for env in self.__envelopes.values()])
+        doc.extend([env.to_xml() for env in self._envelopes.values()])
         etree.ElementTree(doc).write(
             self._fname, pretty_print=True, encoding="utf-8"
         )
 
-    def __loadSavedEnvelopes(self) -> None:
+    def _load(self) -> None:
         try:
             doc = etree.parse(self._fname)
         except Exception as e:
@@ -102,65 +107,55 @@ class EnvelopeRepository:
         for el in ty.cast(list[_Element], doc.xpath("//Envelope")):
             try:
                 env = Envelope.from_xml(el)
-                self.__envelopes[env.id] = env
+                self._envelopes[env.id] = env
             except Exception as e:
                 print(e)
 
     @property
     def envelopes(self) -> dict[EnvelopeId, Envelope]:
-        return filterWeeklyEnvelopes(self.__envelopes)
+        return _filter_weekly_envelopes(self._envelopes)
 
-    def markEnvelopeAsArchive(self, envId: EnvelopeId) -> None:
-        # FIXME: implement archive envelopes
-        pass
-
-    def idForEnvName(self, envName: str) -> EnvelopeId:
+    def id_for_envelope_name(self, name: str) -> EnvelopeId:
         # print(u"Searching for envelope '{0}'".format(envName))
         # FIXME: envelope name is not unique, it may lead to problems
-        for k, v in self.__envelopes.items():
-            if envName.lower() == v.name.lower():
+        for k, v in self._envelopes.items():
+            if name.lower() == v.name.lower():
                 return k
         raise Exception(
-            f'No envelope with name "{envName}", '
-            f"known envelopes: {self.__envelopes}"
+            f'No envelope with name "{name}", '
+            f"known envelopes: {self._envelopes}"
         )
 
-    def envNameForId(self, envId: EnvelopeId) -> str:
-        return self.__envelopes[envId].name
+    def envelope_name_for_id(self, id: EnvelopeId) -> str:
+        return self._envelopes[id].name
 
-    def envelopeValue(self, envId: EnvelopeId) -> float:
+    def envelope_value(self, id: EnvelopeId) -> float:
         value = 0.0
-        for ex in unwrap(self.__expMgr).expenses:
-            if ex.from_id == envId:
+        for ex in unwrap(self._expense_repository).expenses:
+            if ex.from_id == id:
                 value -= ex.value
-            if ex.to_id == envId:
+            if ex.to_id == id:
                 value += ex.value
         return value
 
-    @staticmethod
-    def weekEnvelopeName(isoDate: tuple) -> str:
-        year = isoDate[0]
-        weekNum = isoDate[1]
-        return f"Week_{year}_{weekNum}"
-
     @property
-    def currentEnvelope(self) -> Envelope:
-        isoDate = datetime.datetime.now().isocalendar()
-        envName = self.weekEnvelopeName(isoDate)
-        for k, v in self.__envelopes.items():
-            if envName == v.name:
+    def this_week_envelope(self) -> Envelope:
+        iso_date = datetime.datetime.now().isocalendar()
+        name = _week_envelope_name(iso_date)
+        for k, v in self._envelopes.items():
+            if name == v.name:
                 return v
 
-        return self.addEnvelope(envName)
+        return self.add_envelope(name)
 
     @property
-    def lastWeekEnvelope(self) -> Envelope:
-        isoDate = (
+    def last_week_envelope(self) -> Envelope:
+        iso_date = (
             datetime.datetime.now() - datetime.timedelta(days=7)
         ).isocalendar()
-        envName = self.weekEnvelopeName(isoDate)
-        for k, v in self.__envelopes.items():
-            if envName == v.name:
+        name = _week_envelope_name(iso_date)
+        for k, v in self._envelopes.items():
+            if name == v.name:
                 return v
 
-        return self.addEnvelope(envName)
+        return self.add_envelope(name)

@@ -2,8 +2,8 @@ import collections
 import logging
 import os
 import typing as ty
-from datetime import date as Date
-from datetime import datetime as DateTime
+from datetime import date as Date  # noqa: N812
+from datetime import datetime as DateTime  # noqa: N812
 
 from PySide6.QtCore import Qt, QTimerEvent, Slot
 from PySide6.QtWidgets import (
@@ -86,7 +86,7 @@ class MainForm(QMainWindow):
         self._load_rules()
         self._load_business_plan()
         self._show_this_week_envelope()
-        self.__ui.twExpenses.setIdToName(self.__envMgr.envNameForId)
+        self.__ui.twExpenses.setIdToName(self.__envMgr.envelope_name_for_id)
         self._setup_auto_completion()
         # FIXME: config or constant
         self._apply_rules_automatically()
@@ -94,7 +94,7 @@ class MainForm(QMainWindow):
         self.raise_()
 
     def _setup_auto_completion(self) -> None:
-        envelopeList = [self.__envMgr.currentEnvelope]
+        envelopeList = [self.__envMgr.this_week_envelope]
         for envelope in self.__envMgr.envelopes.values():
             # FIXME: hack to remove weekly envelopes from autocompletion
             if envelope.name.startswith("Week_"):
@@ -107,15 +107,15 @@ class MainForm(QMainWindow):
     def _envelope_to_suggest_item(self, env: Envelope) -> SuggestItem:
         return SuggestItem(
             displayText="%{0} [{1} руб.]".format(
-                env.name, int(self.__envMgr.envelopeValue(env.id))
+                env.name, int(self.__envMgr.envelope_value(env.id))
             ),
             suggestText="%" + env.name,
         )
 
     def _show_this_week_envelope(self) -> None:
         FORMAT_MESSAGE = "Current envelope ({0}): {1}"
-        env = self.__envMgr.currentEnvelope
-        value = formatValue(int(self.__envMgr.envelopeValue(env.id)))
+        env = self.__envMgr.this_week_envelope
+        value = formatValue(int(self.__envMgr.envelope_value(env.id)))
         self.__ui.statusbar.showMessage(FORMAT_MESSAGE.format(env.name, value))
 
     def _apply_rules_automatically(self) -> None:
@@ -144,29 +144,31 @@ class MainForm(QMainWindow):
 
     def _mark_week_as_rules_applied(self) -> None:
         self.__rulesAppliedMgr.mark_week_rules_as_applied(
-            self.__envMgr.currentEnvelope.name
+            self.__envMgr.this_week_envelope.name
         )
 
     def _transfer_all_from_last_week(self) -> None:
-        lwe = self.__envMgr.lastWeekEnvelope
+        lwe = self.__envMgr.last_week_envelope
         logging.debug(
             "Transferring all money (%d) from last week (%s)",
-            self.__envMgr.envelopeValue(lwe.id),
+            self.__envMgr.envelope_value(lwe.id),
             lwe.name,
         )
         self.__expMgr.add_expense_for_rule(
-            self.__envMgr.envelopeValue(lwe.id),
+            self.__envMgr.envelope_value(lwe.id),
             lwe.id,
-            self.__envMgr.currentEnvelope.id,
+            self.__envMgr.this_week_envelope.id,
             "Transfer from previous week",
         )
 
     def _need_to_apply_rules(self) -> bool:
-        curEnvName = self.__envMgr.currentEnvelope.name
+        curEnvName = self.__envMgr.this_week_envelope.name
         logging.debug(
             "Checking if need to apply rules for envelope %s", curEnvName
         )
-        shouldApply = not self.__rulesAppliedMgr.rules_applied_for_week(curEnvName)
+        shouldApply = not self.__rulesAppliedMgr.rules_applied_for_week(
+            curEnvName
+        )
         logging.debug("Rules should be applied: %s", shouldApply)
         return shouldApply
 
@@ -175,7 +177,7 @@ class MainForm(QMainWindow):
         self.__expMgr.add_expense_for_rule(
             self.__bp.weekly_envelope,
             LeftoverEnvelopeId,
-            self.__envMgr.currentEnvelope.id,
+            self.__envMgr.this_week_envelope.id,
             "Automatic creation of weekly envelope",
         )
 
@@ -189,7 +191,7 @@ class MainForm(QMainWindow):
             path_to("rules_applied.xml")
         )
 
-        self.__envMgr.setExpenseManager(self.__expMgr)
+        self.__envMgr.set_expense_repository(self.__expMgr)
         self.__ruleMgr.setExpenseManager(self.__expMgr)
 
     def _setup_expense_table(self) -> None:
@@ -245,10 +247,10 @@ class MainForm(QMainWindow):
             i for i in self.__bp.items if i.type == ItemType.Expense
         ]:
             try:
-                envId = self.__envMgr.idForEnvName(finItem.name)
+                envId = self.__envMgr.id_for_envelope_name(finItem.name)
             except Exception as e:
                 print(e)
-                envId = self.__envMgr.addEnvelope(finItem.name).id
+                envId = self.__envMgr.add_envelope(finItem.name).id
             self.__ruleMgr.addRule(finItem.weekly_value, 3, envId)
         self._load_rules()
         bp = self.__bp
@@ -322,13 +324,15 @@ class MainForm(QMainWindow):
             row,
             1,
             self._item_with_id(
-                self.__envMgr.envNameForId(rule.from_id), rule.id
+                self.__envMgr.envelope_name_for_id(rule.from_id), rule.id
             ),
         )
         tw.setItem(
             row,
             2,
-            self._item_with_id(self.__envMgr.envNameForId(rule.to_id), rule.id),
+            self._item_with_id(
+                self.__envMgr.envelope_name_for_id(rule.to_id), rule.id
+            ),
         )
 
     @Slot()
@@ -364,8 +368,8 @@ class MainForm(QMainWindow):
         expense_str = "%-5d %s\n(%s -> %s)" % (
             expense.value,
             expense.desc,
-            self.__envMgr.envNameForId(expense.from_id),
-            self.__envMgr.envNameForId(expense.to_id),
+            self.__envMgr.envelope_name_for_id(expense.from_id),
+            self.__envMgr.envelope_name_for_id(expense.to_id),
         )
         item = QTreeWidgetItem([expense_str])
         item.setText(0, expense_str)
@@ -387,14 +391,14 @@ class MainForm(QMainWindow):
             row,
             2,
             self._colored_table_widget_item(
-                self.__envMgr.envNameForId(ex.from_id), color, ex
+                self.__envMgr.envelope_name_for_id(ex.from_id), color, ex
             ),
         )
         tw.setItem(
             row,
             3,
             self._colored_table_widget_item(
-                self.__envMgr.envNameForId(ex.to_id), color, ex
+                self.__envMgr.envelope_name_for_id(ex.to_id), color, ex
             ),
         )
         tw.setItem(row, 4, self._colored_table_widget_item(ex.desc, color, ex))
@@ -427,13 +431,13 @@ class MainForm(QMainWindow):
         parsed_expense = parse_expense(user_input)
         envMgr = self.__envMgr
         if parsed_expense.from_envelope is WellKnownEnvelope.ThisWeek:
-            parsed_expense.from_envelope = envMgr.currentEnvelope.name
+            parsed_expense.from_envelope = envMgr.this_week_envelope.name
 
         def get_envelope_id(envelope: WellKnownEnvelope | str) -> int:
             if isinstance(envelope, WellKnownEnvelope):
                 return envelope.value
             else:
-                return envMgr.idForEnvName(envelope)
+                return envMgr.id_for_envelope_name(envelope)
 
         return Expense(
             float(parsed_expense.amount),
@@ -508,7 +512,7 @@ class MainForm(QMainWindow):
             return
 
         try:
-            env = self.__envMgr.addEnvelope(
+            env = self.__envMgr.add_envelope(
                 env_name, "some envelope description here"
             )
             self._add_row_for_envelope(env)
@@ -522,7 +526,7 @@ class MainForm(QMainWindow):
         for row in range(tw.rowCount()):
             item = tw.item(row, 0)
             envId = int(item.data(Qt.ItemDataRole.UserRole))
-            item.setText(formatValue(int(self.__envMgr.envelopeValue(envId))))
+            item.setText(formatValue(int(self.__envMgr.envelope_value(envId))))
         self._setup_auto_completion()
 
     def _load_envelopes(self) -> None:
@@ -534,7 +538,7 @@ class MainForm(QMainWindow):
         tw = self.__ui.tableWidget_2
         row = tw.rowCount()
         tw.setRowCount(row + 1)
-        value = formatValue(int(self.__envMgr.envelopeValue(env.id)))
+        value = formatValue(int(self.__envMgr.envelope_value(env.id)))
         tw.setItem(row, 0, self._item_with_id(value, env.id))
         tw.setItem(row, 1, self._item_with_id(env.name, env.id))
 
