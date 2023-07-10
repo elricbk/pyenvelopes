@@ -15,15 +15,15 @@ from lib.utils import unwrap
 class Expense:
     value: float
     desc: str
-    fromId: int
-    toId: int
+    from_id: int
+    to_id: int
     line: str = ""
     manual: bool = False
     date: datetime.datetime = field(default_factory=datetime.datetime.now)
     id: uuid.UUID = field(default_factory=uuid.uuid4)
 
     @classmethod
-    def fromXml(cls, el: _Element) -> Expense:
+    def from_xml(cls, el: _Element) -> Expense:
         return Expense(
             float(unwrap(el.get("value"))),
             unwrap(el.get("desc")),
@@ -35,14 +35,14 @@ class Expense:
             uuid.UUID(unwrap(el.get("id"))),
         )
 
-    def toXml(self) -> _Element:
+    def to_xml(self) -> _Element:
         return E.Expense(
             id=str(self.id),
             date=str(self.date),
             value=str(self.value),
             desc=self.desc,
-            fromId=str(self.fromId),
-            toId=str(self.toId),
+            fromId=str(self.from_id),
+            toId=str(self.to_id),
             line=self.line,
             manual=str(self.manual),
         )

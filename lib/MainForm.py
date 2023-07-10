@@ -364,8 +364,8 @@ class MainForm(QMainWindow):
         expense_str = "%-5d %s\n(%s -> %s)" % (
             expense.value,
             expense.desc,
-            self.__envMgr.envNameForId(expense.fromId),
-            self.__envMgr.envNameForId(expense.toId),
+            self.__envMgr.envNameForId(expense.from_id),
+            self.__envMgr.envNameForId(expense.to_id),
         )
         item = QTreeWidgetItem([expense_str])
         item.setText(0, expense_str)
@@ -387,14 +387,14 @@ class MainForm(QMainWindow):
             row,
             2,
             self._colored_table_widget_item(
-                self.__envMgr.envNameForId(ex.fromId), color, ex
+                self.__envMgr.envNameForId(ex.from_id), color, ex
             ),
         )
         tw.setItem(
             row,
             3,
             self._colored_table_widget_item(
-                self.__envMgr.envNameForId(ex.toId), color, ex
+                self.__envMgr.envNameForId(ex.to_id), color, ex
             ),
         )
         tw.setItem(row, 4, self._colored_table_widget_item(ex.desc, color, ex))
@@ -555,7 +555,7 @@ class MainForm(QMainWindow):
         tw.clearContents()
         tw.setRowCount(0)
         for ex in self.__expMgr.expenses:
-            if (ex.fromId == envId) or (ex.toId == envId):
+            if (ex.from_id == envId) or (ex.t_iId == envId):
                 self._add_row_for_expense(tw, ex)
         tw.setSortingEnabled(True)
         tw.sortByColumn(0, Qt.SortOrder.DescendingOrder)

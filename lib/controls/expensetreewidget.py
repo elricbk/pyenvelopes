@@ -116,7 +116,7 @@ class ExpenseTreeWidget(QTreeWidget):
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         cleanupEmojis = lambda it: re.sub(r"[\u263a-\U0001f645]", "", it)
         if self._idToName is not None:
-            fromName = self._idToName(expense.fromId)
+            fromName = self._idToName(expense.from_id)
             fromRectH = painter.fontMetrics().boundingRect(
                 cleanupEmojis(fromName)
             )
@@ -161,7 +161,7 @@ class ExpenseTreeWidget(QTreeWidget):
             painter.restore()
 
             bottomRect = bottomRect.adjusted(fromRect.width() + MARGIN, 0, 0, 0)
-            toName = self._idToName(expense.toId)
+            toName = self._idToName(expense.to_id)
             toRectH = painter.fontMetrics().boundingRect(cleanupEmojis(toName))
             toRectW = painter.fontMetrics().boundingRect(toName)
             toRect = QRect(

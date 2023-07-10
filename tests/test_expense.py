@@ -23,7 +23,7 @@ def test_ctor__given_no_date__sets_it_to_now() -> None:
 def test_to_xml__always__serializes_expense() -> None:
     expense = Expense(42, "", 0, 0)
 
-    result = expense.toXml()
+    result = expense.to_xml()
 
     assert result.attrib["id"] == str(expense.id)
     assert result.attrib["manual"] == "False"
@@ -41,11 +41,11 @@ def test_from_xml__given_serialized_expense__loads_it() -> None:
         manual="False"
     />"""
 
-    expense = Expense.fromXml(etree.fromstring(data))
+    expense = Expense.from_xml(etree.fromstring(data))
 
     assert int(expense.value) == 42
-    assert expense.fromId == 3
-    assert expense.toId == 4
+    assert expense.from_id == 3
+    assert expense.to_id == 4
 
 
 def test_expense__always__can_be_used_as_map_key() -> None:

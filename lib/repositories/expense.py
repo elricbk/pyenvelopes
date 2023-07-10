@@ -48,13 +48,13 @@ class ExpenseRepository:
 
         for el in ty.cast(list[_Element], doc.xpath("//Expense")):
             try:
-                self.__expenses.append(Expense.fromXml(el))
+                self.__expenses.append(Expense.from_xml(el))
             except Exception as e:
                 print(e)
 
     def __saveAllExpenses(self) -> None:
         doc = E.Expenses()
-        doc.extend([ex.toXml() for ex in self.__expenses])
+        doc.extend([ex.to_xml() for ex in self.__expenses])
         fname = self._fname
         tmpFileName = fname + ".temp"
         ElementTree(doc).write(tmpFileName, encoding="utf-8", pretty_print=True)

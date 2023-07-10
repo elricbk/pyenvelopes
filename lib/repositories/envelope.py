@@ -131,9 +131,9 @@ class EnvelopeRepository:
     def envelopeValue(self, envId: EnvelopeId) -> float:
         value = 0.0
         for ex in unwrap(self.__expMgr).expenses:
-            if ex.fromId == envId:
+            if ex.from_id == envId:
                 value -= ex.value
-            if ex.toId == envId:
+            if ex.to_id == envId:
                 value += ex.value
         return value
 
