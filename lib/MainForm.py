@@ -143,7 +143,7 @@ class MainForm(QMainWindow):
         self._apply_rules_automatically()
 
     def _mark_week_as_rules_applied(self) -> None:
-        self.__rulesAppliedMgr.markWeekAsRulesApplied(
+        self.__rulesAppliedMgr.mark_week_rules_as_applied(
             self.__envMgr.currentEnvelope.name
         )
 
@@ -166,7 +166,7 @@ class MainForm(QMainWindow):
         logging.debug(
             "Checking if need to apply rules for envelope %s", curEnvName
         )
-        shouldApply = not self.__rulesAppliedMgr.rulesAppliedForWeek(curEnvName)
+        shouldApply = not self.__rulesAppliedMgr.rules_applied_for_week(curEnvName)
         logging.debug("Rules should be applied: %s", shouldApply)
         return shouldApply
 
