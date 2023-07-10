@@ -1,5 +1,6 @@
 import math
 import uuid
+from dataclasses import dataclass
 
 from lxml.builder import E  # type: ignore
 from lxml.etree import _Element
@@ -47,7 +48,14 @@ class Frequency:
         return Frequency.__desc.get(freqType, "")
 
 
+@dataclass
 class BusinessPlanItem:
+    id: uuid.UUID
+    type: int
+    amount: float
+    name: str
+    freq: int
+
     __freqMultiplier = {
         Frequency.Weekly: 1,
         Frequency.OnceInTwoWeeks: 1.0 / 2,
@@ -58,27 +66,13 @@ class BusinessPlanItem:
         Frequency.Yearly: 1.0 / 52,
     }
 
-    def __init__(
-        self,
-        itemId: uuid.UUID,
-        itemType: int,  # FIXME: maybe it should be ItemType
-        amount: float,
-        name: str,
-        freq: int,  # FIXME: maybe it should be Frequency
-    ) -> None:
-        self.__id = itemId
-        self.__type = itemType
-        self.__amount = amount
-        self.__name = name
-        self.__freq = freq
-
     def toXml(self) -> _Element:
         return E.Item(
-            id=str(self.__id),
-            type=str(self.__type),
-            amount=str(self.__amount),
-            name=self.__name,
-            freq=str(self.__freq),
+            id=str(self.id),
+            type=str(self.type),
+            amount=str(self.amount),
+            name=self.name,
+            freq=str(self.freq),
         )
 
     @staticmethod
@@ -90,26 +84,6 @@ class BusinessPlanItem:
             unwrap(el.get("name")),
             int(unwrap(el.get("freq"))),
         )
-
-    @property
-    def id(self) -> uuid.UUID:
-        return self.__id
-
-    @property
-    def type(self) -> int:
-        return self.__type
-
-    @property
-    def amount(self) -> float:
-        return self.__amount
-
-    @property
-    def name(self) -> str:
-        return self.__name
-
-    @property
-    def freq(self) -> int:
-        return self.__freq
 
     @property
     def weeklyValue(self) -> float:
