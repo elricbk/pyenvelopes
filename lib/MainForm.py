@@ -45,6 +45,14 @@ def resizeColumnsToContents(tw: QTableWidget) -> None:
     tw.setVisible(True)
 
 
+def item_type_to_str(itemType: ItemType) -> str:
+    match itemType:
+        case ItemType.Income:
+            return "Доход"
+        case ItemType.Expense:
+            return "Расход"
+
+
 class MainForm(QMainWindow):
     def __init__(self, data_path: str, obj: ty.Any = None) -> None:
         super(MainForm, self).__init__(obj)
@@ -181,11 +189,11 @@ class MainForm(QMainWindow):
         self.__ui.twBusinessPlan.setHorizontalHeaderLabels(
             ["Type", "Amount", "Name", "Description", "Weekly", "Envelope"]
         )
-        for i in range(ItemType.ItemsCount):
-            self.__ui.cbItemType.addItem(ItemType.desc(i), i)
+        for i in ItemType:
+            self.__ui.cbItemType.addItem(item_type_to_str(i), i)
         self.__ui.cbItemType.setCurrentIndex(1)
-        for i in range(Frequency.ItemsCount):
-            self.__ui.cbItemFrequency.addItem(Frequency.desc(i), i)
+        for j in range(Frequency.ItemsCount):
+            self.__ui.cbItemFrequency.addItem(Frequency.desc(j), j)
         self.__ui.cbItemFrequency.setCurrentIndex(4)
 
     @Slot()
@@ -263,7 +271,7 @@ class MainForm(QMainWindow):
         amount = formatValue(int(item.amount))
         weeklyValue = formatValue(int(item.weeklyValue))
         tw.setItem(
-            row, 0, self._item_with_id(ItemType.desc(item.type), item.id)
+            row, 0, self._item_with_id(item_type_to_str(item.type), item.id)
         )
         tw.setItem(row, 1, self._item_with_id(amount, item.id))
         tw.setItem(row, 2, self._item_with_id(item.name, item.id))

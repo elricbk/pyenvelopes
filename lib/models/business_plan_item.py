@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+import enum
 import math
 import uuid
 from dataclasses import dataclass
@@ -8,19 +11,9 @@ from lxml.etree import _Element
 from lib.utils import unwrap
 
 
-class ItemType:
+class ItemType(enum.IntEnum):
     Income = 1
     Expense = 2
-    ItemsCount = 3
-
-    @staticmethod
-    def desc(itemType: int) -> str:
-        if itemType == ItemType.Income:
-            return "Income"
-        elif itemType == ItemType.Expense:
-            return "Expense"
-        else:
-            return ""
 
 
 class Frequency:
@@ -51,7 +44,7 @@ class Frequency:
 @dataclass
 class BusinessPlanItem:
     id: uuid.UUID
-    type: int
+    type: ItemType
     amount: float
     name: str
     freq: int
@@ -79,7 +72,7 @@ class BusinessPlanItem:
     def fromXml(el: _Element) -> "BusinessPlanItem":
         return BusinessPlanItem(
             uuid.UUID(unwrap(el.get("id"))),
-            int(unwrap(el.get("type"))),
+            ItemType(int(unwrap(el.get("type")))),
             float(unwrap(el.get("amount"))),
             unwrap(el.get("name")),
             int(unwrap(el.get("freq"))),

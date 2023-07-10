@@ -42,7 +42,7 @@ class BusinessPlan:
         )
 
     def addItem(
-        self, itemType: int, amount: int, name: str, freq: int
+        self, itemType: ItemType, amount: int, name: str, freq: int
     ) -> ty.Optional[BusinessPlanItem]:
         try:
             item = BusinessPlanItem(uuid.uuid4(), itemType, amount, name, freq)
