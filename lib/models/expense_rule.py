@@ -13,19 +13,19 @@ from lib.utils import unwrap
 class ExpenseRule:
     id: uuid.UUID
     amount: float
-    fromId: int
-    toId: int
+    from_id: int
+    to_id: int
 
-    def toXml(self) -> _Element:
+    def to_xml(self) -> _Element:
         return E.ExpenseRule(
             id=str(self.id),
             amount=str(self.amount),
-            fromId=str(self.fromId),
-            toId=str(self.toId),
+            fromId=str(self.from_id),
+            toId=str(self.to_id),
         )
 
     @staticmethod
-    def fromXml(el: _Element) -> ExpenseRule:
+    def from_xml(el: _Element) -> ExpenseRule:
         return ExpenseRule(
             uuid.UUID(unwrap(el.get("id"))),
             float(unwrap(el.get("amount"))),

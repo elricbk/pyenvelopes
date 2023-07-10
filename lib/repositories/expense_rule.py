@@ -38,7 +38,7 @@ class ExpenseRuleRepository:
 
         for el in ty.cast(list[_Element], doc.xpath("//ExpenseRule")):
             try:
-                self.__rules.append(ExpenseRule.fromXml(el))
+                self.__rules.append(ExpenseRule.from_xml(el))
             except Exception:
                 logging.exception("Exception while parsing ExpenseRule")
 
@@ -65,15 +65,15 @@ class ExpenseRuleRepository:
 
     def __saveAllRules(self) -> None:
         doc = E.ExpenseRules()
-        doc.extend([rule.toXml() for rule in self.__rules])
+        doc.extend([rule.to_xml() for rule in self.__rules])
         fname = self._fname
         etree.ElementTree(doc).write(fname, encoding="utf-8", pretty_print=True)
 
     def executeRule(self, ruleId: uuid.UUID) -> None:
         rule = self.__getRuleById(ruleId)
         if rule is not None:
-            self.__expMgr.addExpenseForRule(rule.amount, rule.fromId, rule.toId)
+            self.__expMgr.addExpenseForRule(rule.amount, rule.from_id, rule.to_id)
 
     def executeAllRules(self) -> None:
         for rule in self.__rules:
-            self.__expMgr.addExpenseForRule(rule.amount, rule.fromId, rule.toId)
+            self.__expMgr.addExpenseForRule(rule.amount, rule.from_id, rule.to_id)

@@ -322,13 +322,13 @@ class MainForm(QMainWindow):
             row,
             1,
             self._item_with_id(
-                self.__envMgr.envNameForId(rule.fromId), rule.id
+                self.__envMgr.envNameForId(rule.from_id), rule.id
             ),
         )
         tw.setItem(
             row,
             2,
-            self._item_with_id(self.__envMgr.envNameForId(rule.toId), rule.id),
+            self._item_with_id(self.__envMgr.envNameForId(rule.to_id), rule.id),
         )
 
     @Slot()
