@@ -125,7 +125,7 @@ class MainForm(QMainWindow):
         #        together or not at all
         self._create_envelope_for_new_week()
         self._transfer_all_from_last_week()
-        self.__ruleMgr.executeAllRules()
+        self.__ruleMgr.execute_all_rules()
         try:
             self._mark_week_as_rules_applied()
         except Exception:
@@ -185,14 +185,15 @@ class MainForm(QMainWindow):
         path_to = lambda it: os.path.join(data_path, it)
         self.__expMgr = ExpenseRepository(path_to("expenses.xml"))
         self.__envMgr = EnvelopeRepository(path_to("envelopes.xml"))
-        self.__ruleMgr = ExpenseRuleRepository(path_to("rules.xml"))
+        self.__ruleMgr = ExpenseRuleRepository(
+            path_to("rules.xml"), self.__expMgr
+        )
         self.__bp = BusinessPlan(path_to("business_plan.xml"))
         self.__rulesAppliedMgr = AppliedRulesRepository(
             path_to("rules_applied.xml")
         )
 
         self.__envMgr.set_expense_repository(self.__expMgr)
-        self.__ruleMgr.setExpenseManager(self.__expMgr)
 
     def _setup_expense_table(self) -> None:
         self.__ui.tableWidget_3.setHorizontalHeaderLabels(
@@ -242,7 +243,7 @@ class MainForm(QMainWindow):
     @Slot()
     def applyBusinessPlan(self) -> None:
         self.__bp.save()
-        self.__ruleMgr.clearAllRules()
+        self.__ruleMgr.clear()
         for finItem in [
             i for i in self.__bp.items if i.type == ItemType.Expense
         ]:
@@ -251,7 +252,7 @@ class MainForm(QMainWindow):
             except Exception as e:
                 print(e)
                 envId = self.__envMgr.add_envelope(finItem.name).id
-            self.__ruleMgr.addRule(finItem.weekly_value, 3, envId)
+            self.__ruleMgr.add_rule(finItem.weekly_value, 3, envId)
         self._load_rules()
         bp = self.__bp
         QMessageBox.information(
@@ -337,7 +338,7 @@ class MainForm(QMainWindow):
 
     @Slot()
     def applyRules(self) -> None:
-        self.__ruleMgr.executeAllRules()
+        self.__ruleMgr.execute_all_rules()
         self._load_expenses()
 
     def _load_expenses(self) -> None:
