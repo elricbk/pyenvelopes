@@ -45,8 +45,8 @@ def resizeColumnsToContents(tw: QTableWidget) -> None:
     tw.setVisible(True)
 
 
-def item_type_to_str(itemType: ItemType) -> str:
-    match itemType:
+def item_type_to_str(item_type: ItemType) -> str:
+    match item_type:
         case ItemType.Income:
             return "Доход"
         case ItemType.Expense:
