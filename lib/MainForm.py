@@ -173,7 +173,7 @@ class MainForm(QMainWindow):
     def _create_envelope_for_new_week(self) -> None:
         logging.debug("Creating envelope for current week")
         self.__expMgr.addExpenseForRule(
-            self.__bp.weeklyEnvelope,
+            self.__bp.weekly_envelope,
             LeftoverEnvelopeId,
             self.__envMgr.currentEnvelope.id,
             "Automatic creation of weekly envelope",
@@ -222,7 +222,7 @@ class MainForm(QMainWindow):
             cbType = self.__ui.cbItemType
             cbFreq = self.__ui.cbItemFrequency
             parts = self.__ui.leNewBPItem.text().split(" ", 2)
-            item = self.__bp.addItem(
+            item = self.__bp.add_item(
                 cbType.itemData(cbType.currentIndex()),
                 int(parts[0]),
                 parts[1],
@@ -256,7 +256,7 @@ class MainForm(QMainWindow):
             self,
             "Financial plan saved",
             "Weekly income: {0}\nWeekly expense: {1}\nWeekly envelope: {2}".format(
-                bp.weeklyIncome, bp.weeklyExpense, bp.weeklyEnvelope
+                bp.weekly_income, bp.weekly_expense, bp.weekly_envelope
             ),
         )
 
@@ -278,9 +278,9 @@ class MainForm(QMainWindow):
         )
         self.__ui.lblWeeklyStats.setText(
             FORMAT_STRING.format(
-                formatValue(int(self.__bp.weeklyIncome)),
-                formatValue(int(self.__bp.weeklyExpense)),
-                formatValue(int(self.__bp.weeklyEnvelope)),
+                formatValue(int(self.__bp.weekly_income)),
+                formatValue(int(self.__bp.weekly_expense)),
+                formatValue(int(self.__bp.weekly_envelope)),
             )
         )
 
@@ -555,7 +555,7 @@ class MainForm(QMainWindow):
         tw.clearContents()
         tw.setRowCount(0)
         for ex in self.__expMgr.expenses:
-            if (ex.from_id == envId) or (ex.t_iId == envId):
+            if (ex.from_id == envId) or (ex.to_id == envId):
                 self._add_row_for_expense(tw, ex)
         tw.setSortingEnabled(True)
         tw.sortByColumn(0, Qt.SortOrder.DescendingOrder)
