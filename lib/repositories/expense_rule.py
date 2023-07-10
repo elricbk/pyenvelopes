@@ -13,18 +13,14 @@ from .expense import ExpenseRepository
 
 class ExpenseRuleRepository:
     def __init__(self, fname: str, expenses: ExpenseRepository) -> None:
+        self.rules: ty.Final[list[ExpenseRule]] = []
         self._expense_repository = expenses
-        self._rules: list[ExpenseRule] = []
         self._fname = fname
         self._load()
 
-    @property
-    def rules(self) -> list[ExpenseRule]:
-        return self._rules
-
     def _save(self) -> None:
         doc = E.ExpenseRules()
-        doc.extend([rule.to_xml() for rule in self._rules])
+        doc.extend([rule.to_xml() for rule in self.rules])
         fname = self._fname
         etree.ElementTree(doc).write(fname, encoding="utf-8", pretty_print=True)
 
@@ -37,18 +33,18 @@ class ExpenseRuleRepository:
 
         for el in ty.cast(list[_Element], doc.xpath("//ExpenseRule")):
             try:
-                self._rules.append(ExpenseRule.from_xml(el))
+                self.rules.append(ExpenseRule.from_xml(el))
             except Exception:
                 logging.exception("Exception while parsing ExpenseRule")
 
     def add_rule(self, amount: float, from_id: int, to_id: int) -> ExpenseRule:
         rule = ExpenseRule(uuid.uuid4(), amount, from_id, to_id)
-        self._rules.append(rule)
+        self.rules.append(rule)
         self._save()
         return rule
 
     def clear(self) -> None:
-        self._rules = []
+        self.rules.clear()
 
     def _execute_rule(self, rule: ExpenseRule) -> None:
         self._expense_repository.add_expense_for_rule(
@@ -57,5 +53,5 @@ class ExpenseRuleRepository:
 
     def execute_all_rules(self) -> None:
         # FIXME: this triggers expense saving for each rule instead of saving once
-        for rule in self._rules:
+        for rule in self.rules:
             self._execute_rule(rule)
