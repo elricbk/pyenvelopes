@@ -24,7 +24,7 @@ class BusinessPlan:
 
         for el in ty.cast(list[_Element], doc.xpath("//Item")):
             try:
-                item = BusinessPlanItem.fromXml(el)
+                item = BusinessPlanItem.from_xml(el)
                 self.__items.append(item)
             except Exception:
                 logging.exception("Exception while parsing BusinessPlanItem")
@@ -32,7 +32,7 @@ class BusinessPlan:
 
     def save(self) -> None:
         doc = E.BusinessPlan()
-        doc.extend([item.toXml() for item in self.__items])
+        doc.extend([item.to_xml() for item in self.__items])
         # FIXME: should write safely here
         etree.ElementTree(doc).write(
             self._fname,
@@ -59,7 +59,7 @@ class BusinessPlan:
     @property
     def weeklyIncome(self) -> float:
         return sum(
-            item.weeklyValue
+            item.weekly_value
             for item in self.__items
             if item.type == ItemType.Income
         )
@@ -67,7 +67,7 @@ class BusinessPlan:
     @property
     def weeklyExpense(self) -> float:
         return sum(
-            item.weeklyValue
+            item.weekly_value
             for item in self.__items
             if item.type == ItemType.Expense
         )

@@ -249,7 +249,7 @@ class MainForm(QMainWindow):
             except Exception as e:
                 print(e)
                 envId = self.__envMgr.addEnvelope(finItem.name).id
-            self.__ruleMgr.addRule(finItem.weeklyValue, 3, envId)
+            self.__ruleMgr.addRule(finItem.weekly_value, 3, envId)
         self._load_rules()
         bp = self.__bp
         QMessageBox.information(
@@ -289,7 +289,7 @@ class MainForm(QMainWindow):
         row = tw.rowCount()
         tw.setRowCount(row + 1)
         amount = formatValue(int(item.amount))
-        weeklyValue = formatValue(int(item.weeklyValue))
+        weeklyValue = formatValue(int(item.weekly_value))
         tw.setItem(
             row, 0, self._item_with_id(item_type_to_str(item.type), item.id)
         )
