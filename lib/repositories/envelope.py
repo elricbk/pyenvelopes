@@ -87,7 +87,7 @@ class EnvelopeRepository:
 
     def __saveAllEnvelopes(self) -> None:
         doc = E.Envelopes()
-        doc.extend([env.toXml() for env in self.__envelopes.values()])
+        doc.extend([env.to_xml() for env in self.__envelopes.values()])
         etree.ElementTree(doc).write(
             self._fname, pretty_print=True, encoding="utf-8"
         )
@@ -101,7 +101,7 @@ class EnvelopeRepository:
 
         for el in ty.cast(list[_Element], doc.xpath("//Envelope")):
             try:
-                env = Envelope.fromXml(el)
+                env = Envelope.from_xml(el)
                 self.__envelopes[env.id] = env
             except Exception as e:
                 print(e)
