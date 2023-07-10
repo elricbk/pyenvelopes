@@ -72,8 +72,8 @@ class ExpenseRuleRepository:
     def executeRule(self, ruleId: uuid.UUID) -> None:
         rule = self.__getRuleById(ruleId)
         if rule is not None:
-            self.__expMgr.addExpenseForRule(rule.amount, rule.from_id, rule.to_id)
+            self.__expMgr.add_expense_for_rule(rule.amount, rule.from_id, rule.to_id)
 
     def executeAllRules(self) -> None:
         for rule in self.__rules:
-            self.__expMgr.addExpenseForRule(rule.amount, rule.from_id, rule.to_id)
+            self.__expMgr.add_expense_for_rule(rule.amount, rule.from_id, rule.to_id)

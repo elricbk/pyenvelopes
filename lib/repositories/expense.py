@@ -9,37 +9,38 @@ from lib.models.expense import Expense
 
 
 class ExpenseRepository:
-    __expenses: list[Expense] = []
+    _expenses: list[Expense] = []
 
     def __init__(self, fname: str) -> None:
         self._fname = fname
-        self.__loadSavedExpenses()
+        self._load()
 
     @property
     def expenses(self) -> list[Expense]:
-        return self.__expenses
+        return self._expenses
 
     def add_expense(self, expense: Expense) -> None:
-        self.__expenses.append(expense)
-        self.__saveAllExpenses()
+        self._expenses.append(expense)
+        self._save()
 
-    def addExpenseForRule(
+    # FIXME: replace usages with `add_expense(Expense)`
+    def add_expense_for_rule(
         self,
         amount: float,
-        fromId: int,
-        toId: int,
+        from_id: int,
+        to_id: int,
         comment: str = "Automatic expense",
     ) -> Expense:
-        ex = Expense(amount, comment, fromId, toId)
-        self.__expenses.append(ex)
-        self.__saveAllExpenses()
+        ex = Expense(amount, comment, from_id, to_id)
+        self._expenses.append(ex)
+        self._save()
         return ex
 
-    def deleteExpense(self, expense: Expense) -> None:
+    def delete_expense(self, expense: Expense) -> None:
         self.expenses.remove(expense)
-        self.__saveAllExpenses()
+        self._save()
 
-    def __loadSavedExpenses(self) -> None:
+    def _load(self) -> None:
         try:
             doc = etree.parse(self._fname)
         except Exception as e:
@@ -48,14 +49,13 @@ class ExpenseRepository:
 
         for el in ty.cast(list[_Element], doc.xpath("//Expense")):
             try:
-                self.__expenses.append(Expense.from_xml(el))
+                self._expenses.append(Expense.from_xml(el))
             except Exception as e:
                 print(e)
 
-    def __saveAllExpenses(self) -> None:
+    def _save(self) -> None:
         doc = E.Expenses()
-        doc.extend([ex.to_xml() for ex in self.__expenses])
-        fname = self._fname
-        tmpFileName = fname + ".temp"
-        ElementTree(doc).write(tmpFileName, encoding="utf-8", pretty_print=True)
-        shutil.move(tmpFileName, fname)
+        doc.extend([ex.to_xml() for ex in self._expenses])
+        tmp_file_name = self._fname + ".temp"
+        ElementTree(doc).write(tmp_file_name, encoding="utf-8", pretty_print=True)
+        shutil.move(tmp_file_name, self._fname)

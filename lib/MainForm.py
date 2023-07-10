@@ -154,7 +154,7 @@ class MainForm(QMainWindow):
             self.__envMgr.envelopeValue(lwe.id),
             lwe.name,
         )
-        self.__expMgr.addExpenseForRule(
+        self.__expMgr.add_expense_for_rule(
             self.__envMgr.envelopeValue(lwe.id),
             lwe.id,
             self.__envMgr.currentEnvelope.id,
@@ -172,7 +172,7 @@ class MainForm(QMainWindow):
 
     def _create_envelope_for_new_week(self) -> None:
         logging.debug("Creating envelope for current week")
-        self.__expMgr.addExpenseForRule(
+        self.__expMgr.add_expense_for_rule(
             self.__bp.weekly_envelope,
             LeftoverEnvelopeId,
             self.__envMgr.currentEnvelope.id,
@@ -478,7 +478,7 @@ class MainForm(QMainWindow):
         if res == QMessageBox.StandardButton.Ok:
             expenses = set(i.data(0, Qt.ItemDataRole.UserRole) for i in items)
             for expense in expenses:
-                self.__expMgr.deleteExpense(expense)
+                self.__expMgr.delete_expense(expense)
             self._refresh_envelope_values()
             self._show_this_week_envelope()
             # FIXME: fix parent's text
