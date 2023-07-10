@@ -100,7 +100,7 @@ class MainForm(QMainWindow):
             if envelope.name.startswith("Week_"):
                 continue
             envelopeList.append(envelope)
-        self.__ui.leExpenseUserInput.setModel(
+        self.__ui.leExpenseUserInput.set_suggestions(
             [self._envelope_to_suggest_item(e) for e in envelopeList]
         )
 
