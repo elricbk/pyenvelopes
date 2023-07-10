@@ -200,17 +200,17 @@ class ExpenseTreeWidget(QTreeWidget):
         idx = 0
         child = index.model().index(idx, 0, index)
         while child.isValid():
-            expense = child.data(Qt.ItemDataRole.UserRole)
+            expense: Expense = child.data(Qt.ItemDataRole.UserRole)
             if expense.manual:
                 if self._idToName is not None:
-                    fromName = self._idToName(expense.fromId)
+                    fromName = self._idToName(expense.from_id)
                     # FIXME: there should be a better way to check for the
                     #        weekly envelope
                     if not fromName.startswith("Week_"):
                         idx += 1
                         child = index.model().index(idx, 0, index)
                         continue
-                sumForDay += expense.value
+                sumForDay += int(expense.value)
             idx += 1
             child = index.model().index(idx, 0, index)
         return formatValue(int(sumForDay))
