@@ -53,6 +53,24 @@ def item_type_to_str(item_type: ItemType) -> str:
             return "Расход"
 
 
+def frequency_to_str(freq_type: Frequency) -> str:
+    match freq_type:
+        case Frequency.Weekly:
+            return "Еженедельно"
+        case Frequency.OnceInTwoWeeks:
+            return "Раз в две недели"
+        case Frequency.TwiceInMonth:
+            return "Два раза в месяц"
+        case Frequency.Monthly:
+            return "Раз в месяц"
+        case Frequency.Quarterly:
+            return "Раз в квартал"
+        case Frequency.HalfYear:
+            return "Раз в полгода"
+        case Frequency.Yearly:
+            return "Раз в год"
+
+
 class MainForm(QMainWindow):
     def __init__(self, data_path: str, obj: ty.Any = None) -> None:
         super(MainForm, self).__init__(obj)
@@ -192,8 +210,10 @@ class MainForm(QMainWindow):
         for i in ItemType:
             self.__ui.cbItemType.addItem(item_type_to_str(i), i)
         self.__ui.cbItemType.setCurrentIndex(1)
-        for j in range(Frequency.ItemsCount):
-            self.__ui.cbItemFrequency.addItem(Frequency.desc(j), j)
+        for freq_item in Frequency:
+            self.__ui.cbItemFrequency.addItem(
+                frequency_to_str(freq_item), freq_item
+            )
         self.__ui.cbItemFrequency.setCurrentIndex(4)
 
     @Slot()
@@ -276,7 +296,7 @@ class MainForm(QMainWindow):
         tw.setItem(row, 1, self._item_with_id(amount, item.id))
         tw.setItem(row, 2, self._item_with_id(item.name, item.id))
         tw.setItem(
-            row, 3, self._item_with_id(Frequency.desc(item.freq), item.id)
+            row, 3, self._item_with_id(frequency_to_str(item.freq), item.id)
         )
         tw.setItem(row, 4, self._item_with_id(weeklyValue, item.id))
         for env in self.__envMgr.envelopes.values():
