@@ -9,6 +9,7 @@ import collections
 import typing as ty
 
 from PySide6 import QtCore, QtGui, QtWidgets
+from typing import override
 
 SuggestItem = collections.namedtuple("SuggestItem", "displayText,suggestText")
 ModelIndex = ty.Union[QtCore.QModelIndex, QtCore.QPersistentModelIndex]
@@ -19,11 +20,13 @@ class SuggestItemListModel(QtCore.QAbstractListModel):
         super(SuggestItemListModel, self).__init__()
         self._items = items
 
+    @override
     def rowCount(  # noqa: N802
         self, parent: ModelIndex = QtCore.QModelIndex()
     ) -> int:
         return len(self._items)
 
+    @override
     def data(
         self,
         index: ModelIndex,
@@ -94,6 +97,7 @@ class AutoCompleteEdit(QtWidgets.QLineEdit):
             self._completer.completionModel().index(0, 0)
         )
 
+    @override
     def keyPressEvent(self, event: QtGui.QKeyEvent) -> None:  # noqa: N802
         if self._completer.popup().isVisible():
             if event.key() in self._keys_to_ignore:
