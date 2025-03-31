@@ -5,10 +5,32 @@ import uuid
 from lxml import etree
 from lxml.builder import E  # type: ignore
 from lxml.etree import _Element
+from lxml.builder import E  # type: ignore
 
 from lib.models.expense_rule import ExpenseRule
+from lib.utils import unwrap
 
 from .expense import ExpenseRepository
+
+
+def expense_rule_to_xml(rule: ExpenseRule) -> _Element:
+    """Converts an ExpenseRule object to an XML element."""
+    return E.ExpenseRule(
+        id=str(rule.id),
+        amount=str(rule.amount),
+        fromId=str(rule.from_id),
+        toId=str(rule.to_id),
+    )
+
+
+def xml_to_expense_rule(el: _Element) -> ExpenseRule:
+    """Converts an XML element to an ExpenseRule object."""
+    return ExpenseRule(
+        uuid.UUID(unwrap(el.get("id"))),
+        float(unwrap(el.get("amount"))),
+        int(unwrap(el.get("fromId"))),
+        int(unwrap(el.get("toId"))),
+    )
 
 
 class ExpenseRuleRepository:
@@ -20,7 +42,7 @@ class ExpenseRuleRepository:
 
     def _save(self) -> None:
         doc = E.ExpenseRules()
-        doc.extend([rule.to_xml() for rule in self.rules])
+        doc.extend([expense_rule_to_xml(rule) for rule in self.rules])
         fname = self._fname
         etree.ElementTree(doc).write(fname, encoding="utf-8", pretty_print=True)
 
@@ -33,7 +55,7 @@ class ExpenseRuleRepository:
 
         for el in ty.cast(list[_Element], doc.xpath("//ExpenseRule")):
             try:
-                self.rules.append(ExpenseRule.from_xml(el))
+                self.rules.append(xml_to_expense_rule(el))
             except Exception:
                 logging.exception("Exception while parsing ExpenseRule")
 

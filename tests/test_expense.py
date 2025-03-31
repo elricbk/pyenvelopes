@@ -4,6 +4,7 @@ import uuid
 from lxml import etree
 
 from lib.models.expense import Expense
+from lib.repositories.expense import expense_to_xml, xml_to_expense
 
 
 def test_ctor__given_no_id__generates_some() -> None:
@@ -23,7 +24,7 @@ def test_ctor__given_no_date__sets_it_to_now() -> None:
 def test_to_xml__always__serializes_expense() -> None:
     expense = Expense(42, "", 0, 0)
 
-    result = expense.to_xml()
+    result = expense_to_xml(expense)
 
     assert result.attrib["id"] == str(expense.id)
     assert result.attrib["manual"] == "False"
@@ -41,7 +42,7 @@ def test_from_xml__given_serialized_expense__loads_it() -> None:
         manual="False"
     />"""
 
-    expense = Expense.from_xml(etree.fromstring(data))
+    expense = xml_to_expense(etree.fromstring(data))
 
     assert int(expense.value) == 42
     assert expense.from_id == 3

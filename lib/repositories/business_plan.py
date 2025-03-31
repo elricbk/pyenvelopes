@@ -7,6 +7,33 @@ from lxml.builder import E  # type: ignore
 from lxml.etree import _Element
 
 from lib.models.business_plan_item import BusinessPlanItem, ItemType, Frequency
+from lxml.builder import E  # type: ignore
+from lib.utils import unwrap
+import uuid
+
+
+def business_plan_item_to_xml(item: BusinessPlanItem) -> _Element:
+    """Converts a BusinessPlanItem object to an XML element."""
+    return E.Item(
+        id=str(item.id),
+        type=item.type.name,
+        amount=str(item.amount),
+        name=item.name,
+        freq=item.freq.name,
+    )
+
+
+def xml_to_business_plan_item(el: _Element) -> BusinessPlanItem:
+    """Converts an XML element to a BusinessPlanItem object."""
+    return BusinessPlanItem(
+        uuid.UUID(unwrap(el.get("id"))),
+        ItemType[unwrap(el.get("type"))],
+        int(unwrap(el.get("amount"))),
+        unwrap(el.get("name")),
+        Frequency[unwrap(el.get("freq"))],
+    )
+
+
 
 
 class BusinessPlan:
@@ -24,7 +51,7 @@ class BusinessPlan:
 
         for el in ty.cast(list[_Element], doc.xpath("//Item")):
             try:
-                item = BusinessPlanItem.from_xml(el)
+                item = xml_to_business_plan_item(el)
                 self._items.append(item)
             except Exception:
                 logging.exception("Exception while parsing BusinessPlanItem")
@@ -32,7 +59,7 @@ class BusinessPlan:
 
     def save(self) -> None:
         doc = E.BusinessPlan()
-        doc.extend([item.to_xml() for item in self._items])
+        doc.extend([business_plan_item_to_xml(item) for item in self._items])
         # FIXME: should write safely here
         etree.ElementTree(doc).write(
             self._fname,

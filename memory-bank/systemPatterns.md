@@ -4,7 +4,7 @@ This file documents recurring patterns and standards used in the project.
 It is optional, but recommended to be updated as the project evolves.
 2025-03-31 01:25:52 - Log of updates made.
 
-*
+* 2025-04-01 00:10:00 - Updated persistence patterns to reflect separation of concerns
 
 ## Coding Patterns
 
@@ -38,6 +38,7 @@ It is optional, but recommended to be updated as the project evolves.
 *   **Custom UI Controls:** Reusable custom widgets are developed in `lib/controls/` (e.g., `AutoCompleteEdit`, `ExpenseTreeWidget`). These often inherit from standard PySide6 widgets, utilize composition (like `QCompleter`), implement custom models (`QAbstractListModel`), override event handlers (`keyPressEvent`), and may use custom item delegates (`QStyledItemDelegate`) or override drawing methods (`drawRow` with `QPainter`) for highly customized appearance and behavior. They are integrated into the `.ui` design or instantiated directly in code.
 *   **Repository Pattern:** Data access is encapsulated in repository classes (`ExpenseRepository`, `EnvelopeRepository`, etc.), isolating XML persistence logic.
 *   **Implicit Dependency Injection:** Repositories are created in `MainForm` and dependencies (like `ExpenseRepository` into `EnvelopeRepository`, or `idToName` function into `ExpenseTreeWidget`) are set manually via methods.
+*   **Clean Domain Models:** Models contain only business logic and data, with no knowledge of persistence mechanisms.
 *   **Timer-Based Events:** A `QTimerEvent` in `MainForm` triggers periodic actions (`_apply_rules_automatically`).
 *   **Timestamp:** [2025-03-31 12:02:00] - Refined Custom UI Controls and Dependency Injection descriptions based on `ExpenseTreeWidget`.
 *   **Timestamp:** [2025-03-31 12:00:00] - Updated View description and added UI generation/custom control patterns.
@@ -63,5 +64,7 @@ It is optional, but recommended to be updated as the project evolves.
 *   **Handling:** Repositories use `lxml` (`etree.parse`, `lxml.builder.E`) for parsing and writing XML.
 *   **Model Serialization:** Model classes (`lib/models/`) define static `from_xml(element)` and instance `to_xml()` methods for conversion between objects and XML elements.
 *   **Safe Save:** Repositories write changes to a temporary file (`.temp` suffix) and then use `shutil.move` to replace the original file, ensuring atomicity and preventing data loss on write errors.
+*   **Conversion Functions:** Standalone functions in repositories handle conversion between models and XML (e.g., `expense_to_xml`, `xml_to_expense`).
+*   **Separation of Concerns:** Models are completely decoupled from persistence logic, making it easier to change storage implementations.
 *   **Timestamp:** [2025-03-31 01:57:00] - Refined persistence patterns based on `ExpenseRepository` analysis.
 *   **Timestamp:** [2025-03-31 01:34:48] - Documented initial XML data structures.

@@ -44,25 +44,6 @@ class BusinessPlanItem:
         Frequency.Yearly: 1.0 / 52,
     }
 
-    def to_xml(self) -> _Element:
-        return E.Item(
-            id=str(self.id),
-            type=str(self.type),
-            amount=str(self.amount),
-            name=self.name,
-            freq=str(self.freq),
-        )
-
-    @staticmethod
-    def from_xml(el: _Element) -> BusinessPlanItem:
-        return BusinessPlanItem(
-            uuid.UUID(unwrap(el.get("id"))),
-            ItemType(int(unwrap(el.get("type")))),
-            float(unwrap(el.get("amount"))),
-            unwrap(el.get("name")),
-            Frequency(int(unwrap(el.get("freq")))),
-        )
-
     @property
     def weekly_value(self) -> float:
         return math.ceil(

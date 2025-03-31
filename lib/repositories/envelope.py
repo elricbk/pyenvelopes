@@ -5,12 +5,28 @@ import typing as ty
 from lxml import etree
 from lxml.builder import E  # type: ignore
 from lxml.etree import _Element
+from lxml.builder import E  # type: ignore
 
 from lib.models.envelope import Envelope, EnvelopeId
 from lib.utils import unwrap
 from lib.well_known_envelope import WellKnownEnvelope
 
 from .expense import ExpenseRepository
+
+
+def envelope_to_xml(envelope: Envelope) -> _Element:
+    """Converts an Envelope object to an XML element."""
+    return E.Envelope(id=str(envelope.id), name=envelope.name, desc=envelope.desc)
+
+
+def xml_to_envelope(el: _Element) -> Envelope:
+    """Converts an XML element to an Envelope object."""
+    return Envelope(
+        int(unwrap(el.get("id"))),
+        unwrap(el.get("name")),
+        unwrap(el.get("desc")),
+    )
+
 
 __MAX_WEEKLY_ENVELOPES = 4
 
@@ -92,7 +108,7 @@ class EnvelopeRepository:
 
     def _save(self) -> None:
         doc = E.Envelopes()
-        doc.extend([env.to_xml() for env in self._envelopes.values()])
+        doc.extend([envelope_to_xml(env) for env in self._envelopes.values()])
         etree.ElementTree(doc).write(
             self._fname, pretty_print=True, encoding="utf-8"
         )
@@ -106,7 +122,7 @@ class EnvelopeRepository:
 
         for el in ty.cast(list[_Element], doc.xpath("//Envelope")):
             try:
-                env = Envelope.from_xml(el)
+                env = xml_to_envelope(el)
                 self._envelopes[env.id] = env
             except Exception as e:
                 print(e)
