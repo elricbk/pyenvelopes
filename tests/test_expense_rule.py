@@ -2,7 +2,7 @@ import uuid
 from lxml import etree
 
 from lib.models.expense_rule import ExpenseRule
-from lib.repositories.expense_rule import expense_rule_to_xml, xml_to_expense_rule
+from lib.repositories.expense_rule.xml.expense_rule import expense_rule_to_xml, xml_to_expense_rule
 
 
 def test_to_xml__always__serializes_expense_rule() -> None:

@@ -7,8 +7,8 @@ from lxml import etree
 from lxml.builder import E  # type: ignore
 from lxml.etree import ElementTree, _Element
 
-from lib.models.expense import Expense
-from lib.utils import unwrap
+from ....models.expense import Expense
+from ....utils import unwrap
 
 
 def expense_to_xml(expense: Expense) -> _Element:

@@ -7,10 +7,10 @@ from lxml.builder import E  # type: ignore
 from lxml.etree import _Element
 from lxml.builder import E  # type: ignore
 
-from lib.models.expense_rule import ExpenseRule
-from lib.utils import unwrap
+from ....models.expense_rule import ExpenseRule
+from ....utils import unwrap
 
-from .expense import ExpenseRepository
+from ...expense.xml.expense import ExpenseRepository
 
 
 def expense_rule_to_xml(rule: ExpenseRule) -> _Element:

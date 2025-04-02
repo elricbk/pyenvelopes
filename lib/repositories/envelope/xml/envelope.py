@@ -7,11 +7,11 @@ from lxml.builder import E  # type: ignore
 from lxml.etree import _Element
 from lxml.builder import E  # type: ignore
 
-from lib.models.envelope import Envelope, EnvelopeId
-from lib.utils import unwrap
-from lib.well_known_envelope import WellKnownEnvelope
+from ....models.envelope import Envelope, EnvelopeId
+from ....utils import unwrap
+from ....well_known_envelope import WellKnownEnvelope
 
-from .expense import ExpenseRepository
+from ...expense.xml.expense import ExpenseRepository
 
 
 def envelope_to_xml(envelope: Envelope) -> _Element:

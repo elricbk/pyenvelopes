@@ -4,7 +4,7 @@ import uuid
 from lxml import etree
 
 from lib.models.expense import Expense
-from lib.repositories.expense import expense_to_xml, xml_to_expense
+from lib.repositories.expense.xml.expense import expense_to_xml, xml_to_expense
 
 
 def test_ctor__given_no_id__generates_some() -> None:

@@ -21,11 +21,11 @@ from .models.envelope import Envelope
 from .models.expense import Expense
 from .models.expense_rule import ExpenseRule
 from .parse_expense import parse_expense
-from .repositories.applied_rules import AppliedRulesRepository
-from .repositories.business_plan import BusinessPlan
-from .repositories.envelope import EnvelopeRepository
-from .repositories.expense import ExpenseRepository
-from .repositories.expense_rule import ExpenseRuleRepository
+from .repositories.applied_rules import create_applied_rules_repository
+from .repositories.business_plan import create_business_plan_repository
+from .repositories.envelope import create_envelope_repository
+from .repositories.expense import create_expense_repository
+from .repositories.expense_rule import create_expense_rule_repository
 from .ui_MainForm import Ui_MainWindow
 from .utils import formatValue
 from .well_known_envelope import WellKnownEnvelope
@@ -183,14 +183,14 @@ class MainForm(QMainWindow):
 
     def _setup_managers(self, data_path: str) -> None:
         path_to = lambda it: os.path.join(data_path, it)
-        self.__expMgr = ExpenseRepository(path_to("expenses.xml"))
-        self.__envMgr = EnvelopeRepository(path_to("envelopes.xml"))
-        self.__ruleMgr = ExpenseRuleRepository(
-            path_to("rules.xml"), self.__expMgr
+        self.__expMgr = create_expense_repository(fname=path_to("expenses.xml"))
+        self.__envMgr = create_envelope_repository(fname=path_to("envelopes.xml"))
+        self.__ruleMgr = create_expense_rule_repository(
+            fname=path_to("rules.xml"), expenses=self.__expMgr
         )
-        self.__bp = BusinessPlan(path_to("business_plan.xml"))
-        self.__rulesAppliedMgr = AppliedRulesRepository(
-            path_to("rules_applied.xml")
+        self.__bp = create_business_plan_repository(fname=path_to("business_plan.xml"))
+        self.__rulesAppliedMgr = create_applied_rules_repository(
+            fname=path_to("rules_applied.xml")
         )
 
         self.__envMgr.set_expense_repository(self.__expMgr)
