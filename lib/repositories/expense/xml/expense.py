@@ -54,18 +54,6 @@ class ExpenseRepository:
         self._expenses.append(expense)
         self._save()
 
-    # FIXME: replace usages with `add_expense(Expense)`
-    def add_expense_for_rule(
-        self,
-        amount: float,
-        from_id: int,
-        to_id: int,
-        comment: str = "Automatic expense",
-    ) -> Expense:
-        ex = Expense(amount, comment, from_id, to_id)
-        self._expenses.append(ex)
-        self._save()
-        return ex
 
     def delete_expense(self, expense: Expense) -> None:
         self.expenses.remove(expense)

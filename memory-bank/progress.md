@@ -4,9 +4,14 @@ This file tracks the project's progress using a task list format.
 2025-03-31 01:25:41 - Log of updates made.
 
 * 2025-04-01 00:10:30 - Completed persistence layer refactoring
+* 2025-04-03 00:18:50 - Completed expense creation refactoring
 
 ## Completed Tasks
 
+*   [2025-04-03 00:18:50] - Refactored expense creation:
+    * Replaced all usages of `add_expense_for_rule` with `add_expense(Expense)`
+    * Removed deprecated `add_expense_for_rule` method
+    * Updated all call sites to create Expense objects explicitly
 *   [2025-04-01 00:10:30] - Refactored persistence layer to separate concerns:
     * Moved XML serialization/deserialization to repositories
     * Removed persistence knowledge from domain models
@@ -18,10 +23,6 @@ This file tracks the project's progress using a task list format.
     * Moved repository implementations to `lib/repositories/*/xml/` sub-packages.
     * Created factory functions `create_*_repository` in `lib/repositories/*/`.
     * Updated `MainForm.py` and tests to use factory functions.
-
-## Current Tasks
-
-*   
 
 ## Next Steps
 

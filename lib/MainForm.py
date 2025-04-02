@@ -154,12 +154,13 @@ class MainForm(QMainWindow):
             self.__envMgr.envelope_value(lwe.id),
             lwe.name,
         )
-        self.__expMgr.add_expense_for_rule(
+        expense = Expense(
             self.__envMgr.envelope_value(lwe.id),
-            lwe.id,
-            self.__envMgr.this_week_envelope.id,
             "Transfer from previous week",
+            lwe.id,
+            self.__envMgr.this_week_envelope.id
         )
+        self.__expMgr.add_expense(expense)
 
     def _need_to_apply_rules(self) -> bool:
         curEnvName = self.__envMgr.this_week_envelope.name
@@ -174,12 +175,13 @@ class MainForm(QMainWindow):
 
     def _create_envelope_for_new_week(self) -> None:
         logging.debug("Creating envelope for current week")
-        self.__expMgr.add_expense_for_rule(
+        expense = Expense(
             self.__bp.weekly_envelope,
-            LeftoverEnvelopeId,
-            self.__envMgr.this_week_envelope.id,
             "Automatic creation of weekly envelope",
+            LeftoverEnvelopeId,
+            self.__envMgr.this_week_envelope.id
         )
+        self.__expMgr.add_expense(expense)
 
     def _setup_managers(self, data_path: str) -> None:
         path_to = lambda it: os.path.join(data_path, it)

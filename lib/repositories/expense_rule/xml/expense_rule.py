@@ -8,6 +8,7 @@ from lxml.etree import _Element
 from lxml.builder import E  # type: ignore
 
 from ....models.expense_rule import ExpenseRule
+from ....models.expense import Expense
 from ....utils import unwrap
 
 from ...expense.xml.expense import ExpenseRepository
@@ -69,9 +70,13 @@ class ExpenseRuleRepository:
         self.rules.clear()
 
     def _execute_rule(self, rule: ExpenseRule) -> None:
-        self._expense_repository.add_expense_for_rule(
-            rule.amount, rule.from_id, rule.to_id
+        expense = Expense(
+            rule.amount,
+            "Automatic expense from rule",
+            rule.from_id,
+            rule.to_id
         )
+        self._expense_repository.add_expense(expense)
 
     def execute_all_rules(self) -> None:
         # FIXME: this triggers expense saving for each rule instead of saving once
