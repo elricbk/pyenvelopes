@@ -5,11 +5,6 @@ import math
 import uuid
 from dataclasses import dataclass
 
-from lxml.builder import E  # type: ignore
-from lxml.etree import _Element
-
-from lib.utils import unwrap
-
 
 class ItemType(enum.IntEnum):
     Income = 1
