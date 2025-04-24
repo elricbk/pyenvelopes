@@ -16,22 +16,31 @@ def business_plan_item_to_xml(item: BusinessPlanItem) -> _Element:
     """Converts a BusinessPlanItem object to an XML element."""
     return E.Item(
         id=str(item.id),
-        type=item.type.name,
+        type=str(item.type.value),
         amount=str(item.amount),
         name=item.name,
-        freq=item.freq.name,
+        freq=str(item.freq.value),
     )
 
 
 def xml_to_business_plan_item(el: _Element) -> BusinessPlanItem:
     """Converts an XML element to a BusinessPlanItem object."""
-    return BusinessPlanItem(
-        uuid.UUID(unwrap(el.get("id"))),
-        ItemType[unwrap(el.get("type"))],
-        int(unwrap(el.get("amount"))),
-        unwrap(el.get("name")),
-        Frequency[unwrap(el.get("freq"))],
-    )
+    try:
+        type_str = unwrap(el.get("type"))
+        item_type = ItemType(int(type_str))
+        freq_str = unwrap(el.get("freq"))
+        frequency = Frequency(int(freq_str))
+
+        return BusinessPlanItem(
+            uuid.UUID(unwrap(el.get("id"))),
+            item_type,
+            float(unwrap(el.get("amount"))),  # Changed to float to handle decimal amounts
+            unwrap(el.get("name")),
+            frequency,
+        )
+    except Exception:
+        logging.exception(f"Failed to parse BusinessPlanItem from XML: {etree.tostring(el)}")
+        raise
 
 
 
