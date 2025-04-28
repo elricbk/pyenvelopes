@@ -9,12 +9,12 @@ from pathlib import Path
 # Add project root to Python path
 sys.path.append(str(Path(__file__).parent.parent))
 
-from lib.repositories.envelope import create_envelope_repository
-from lib.repositories.expense import create_expense_repository
+from lib.repositories.envelope import create_envelope_repository, EnvelopeRepository
+from lib.repositories.expense import create_expense_repository, ExpenseRepository
 from lib.repositories.business_plan import create_business_plan_repository
 
 
-def calculate_yearly_totals(expense_repo, envelope_repo, year_filter: int = None) -> dict:
+def calculate_yearly_totals(expense_repo: ExpenseRepository, envelope_repo: EnvelopeRepository, year_filter: int = None) -> dict:
     """Calculate yearly spending/adding totals per envelope.
 
     Args:
@@ -33,6 +33,13 @@ def calculate_yearly_totals(expense_repo, envelope_repo, year_filter: int = None
 
         if year not in yearly_totals:
             yearly_totals[year] = {}
+
+        # Skip automatic transactions for weekly envelopes
+        from_name = envelope_repo.envelope_name_for_id(expense.from_id)
+        to_name = envelope_repo.envelope_name_for_id(expense.to_id)
+        is_weekly = from_name.startswith('Week_') or to_name.startswith('Week_')
+        if is_weekly and not expense.manual:
+            continue
 
         # Track spending (fromId)
         from_id = str(expense.from_id)
@@ -105,6 +112,7 @@ def generate_report(yearly_totals: dict,
         year_total_spent = 0.0
         year_total_added = 0.0
         year_lines = []
+        weekly_totals = {'spent': 0.0, 'added': 0.0}
 
         # Header
         report_lines.append(f"\nYear: {year}")
@@ -121,6 +129,12 @@ def generate_report(yearly_totals: dict,
             except:
                 env_name = f"[ID: {env_id}]"
 
+            # Skip weekly envelopes - we'll handle them separately
+            if env_name.startswith('Week_'):
+                weekly_totals['spent'] += yearly_totals[year][env_id]['spent']
+                weekly_totals['added'] += yearly_totals[year][env_id]['added']
+                continue
+
             totals = yearly_totals[year][env_id]
             planned = planned_values.get(env_name, 0.0)
             diff = totals['added'] - totals['spent']
@@ -131,6 +145,16 @@ def generate_report(yearly_totals: dict,
 
             year_total_spent += totals['spent']
             year_total_added += totals['added']
+
+        # Add weekly envelope totals as a single line
+        if weekly_totals['spent'] > 0 or weekly_totals['added'] > 0:
+            weekly_planned = planned_values.get('week', 0.0) * 52
+            weekly_diff = weekly_totals['added'] - weekly_totals['spent']
+            year_lines.append(
+                f"{'week':<20} {weekly_planned:>15.2f} {weekly_totals['added']:>15.2f} {weekly_totals['spent']:>15.2f} {weekly_diff:>15.2f}"
+            )
+            year_total_spent += weekly_totals['spent']
+            year_total_added += weekly_totals['added']
 
         # Sort by envelope name
         report_lines.extend(sorted(year_lines))
