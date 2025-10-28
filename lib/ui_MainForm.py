@@ -3,18 +3,26 @@
 ################################################################################
 ## Form generated from reading UI file 'MainForm.ui'
 ##
-## Created by: Qt User Interface Compiler version 5.15.1
+## Created by: Qt User Interface Compiler version 6.8.3
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from PySide6.QtCore import *
-from PySide6.QtGui import *
-from PySide6.QtWidgets import *
+from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
+    QMetaObject, QObject, QPoint, QRect,
+    QSize, QTime, QUrl, Qt)
+from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
+    QFont, QFontDatabase, QGradient, QIcon,
+    QImage, QKeySequence, QLinearGradient, QPainter,
+    QPalette, QPixmap, QRadialGradient, QTransform)
+from PySide6.QtWidgets import (QAbstractItemView, QApplication, QCheckBox, QComboBox,
+    QHBoxLayout, QHeaderView, QLabel, QLineEdit,
+    QMainWindow, QPushButton, QSizePolicy, QSpacerItem,
+    QStatusBar, QTabWidget, QTableWidget, QTableWidgetItem,
+    QTreeWidgetItem, QVBoxLayout, QWidget)
 
 from lib.controls.autocompleteedit import AutoCompleteEdit
 from lib.controls.expensetreewidget import ExpenseTreeWidget
-
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -46,7 +54,7 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_8.addWidget(self.pbReload)
 
-        self.horizontalSpacer_3 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.horizontalSpacer_3 = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
         self.horizontalLayout_8.addItem(self.horizontalSpacer_3)
 
@@ -86,6 +94,11 @@ class Ui_MainWindow(object):
         self.tab_2.setObjectName(u"tab_2")
         self.verticalLayout_3 = QVBoxLayout(self.tab_2)
         self.verticalLayout_3.setObjectName(u"verticalLayout_3")
+        self.cbShowArchivedEnvelopes = QCheckBox(self.tab_2)
+        self.cbShowArchivedEnvelopes.setObjectName(u"cbShowArchivedEnvelopes")
+
+        self.verticalLayout_3.addWidget(self.cbShowArchivedEnvelopes)
+
         self.horizontalLayout_2 = QHBoxLayout()
         self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
         self.leNewEnvelope = QLineEdit(self.tab_2)
@@ -97,6 +110,11 @@ class Ui_MainWindow(object):
         self.btnAddEnvelope.setObjectName(u"btnAddEnvelope")
 
         self.horizontalLayout_2.addWidget(self.btnAddEnvelope)
+
+        self.btnToggleArchiveEnvelope = QPushButton(self.tab_2)
+        self.btnToggleArchiveEnvelope.setObjectName(u"btnToggleArchiveEnvelope")
+
+        self.horizontalLayout_2.addWidget(self.btnToggleArchiveEnvelope)
 
 
         self.verticalLayout_3.addLayout(self.horizontalLayout_2)
@@ -148,7 +166,7 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_3 = QHBoxLayout()
         self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
-        self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
         self.horizontalLayout_3.addItem(self.horizontalSpacer)
 
@@ -213,7 +231,7 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_5 = QHBoxLayout()
         self.horizontalLayout_5.setObjectName(u"horizontalLayout_5")
-        self.horizontalSpacer_2 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.horizontalSpacer_2 = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
         self.horizontalLayout_5.addItem(self.horizontalSpacer_2)
 
@@ -260,8 +278,10 @@ class Ui_MainWindow(object):
         self.leExpenseUserInput.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Enter new expense here", None))
         self.btnAddExpense.setText(QCoreApplication.translate("MainWindow", u"Add expense", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), QCoreApplication.translate("MainWindow", u"Expenses", None))
+        self.cbShowArchivedEnvelopes.setText(QCoreApplication.translate("MainWindow", u"\u041f\u043e\u043a\u0430\u0437\u044b\u0432\u0430\u0442\u044c \u0430\u0440\u0445\u0438\u0432\u043d\u044b\u0435 \u043a\u043e\u043d\u0432\u0435\u0440\u0442\u044b", None))
         self.leNewEnvelope.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Enter name for new envelope here", None))
         self.btnAddEnvelope.setText(QCoreApplication.translate("MainWindow", u"New envelope", None))
+        self.btnToggleArchiveEnvelope.setText(QCoreApplication.translate("MainWindow", u"\u0410\u0440\u0445\u0438\u0432\u0438\u0440\u043e\u0432\u0430\u0442\u044c", None))
         self.label_3.setText(QCoreApplication.translate("MainWindow", u"Expenses for selected envelope:", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), QCoreApplication.translate("MainWindow", u"Envelopes", None))
         self.btnApplyRules.setText(QCoreApplication.translate("MainWindow", u"Apply rules", None))

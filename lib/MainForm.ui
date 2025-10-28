@@ -109,6 +109,13 @@
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_3">
         <item>
+         <widget class="QCheckBox" name="cbShowArchivedEnvelopes">
+          <property name="text">
+           <string>Показывать архивные конверты</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <layout class="QHBoxLayout" name="horizontalLayout_2">
           <item>
            <widget class="QLineEdit" name="leNewEnvelope">
@@ -121,6 +128,13 @@
            <widget class="QPushButton" name="btnAddEnvelope">
             <property name="text">
              <string>New envelope</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btnToggleArchiveEnvelope">
+            <property name="text">
+             <string>Архивировать</string>
             </property>
            </widget>
           </item>

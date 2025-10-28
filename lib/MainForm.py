@@ -6,6 +6,7 @@ from datetime import date as Date  # noqa: N812
 from datetime import datetime as DateTime  # noqa: N812
 
 from PySide6.QtCore import Qt, QTimerEvent, Slot
+from PySide6.QtGui import QColor, QFont
 from PySide6.QtWidgets import (
     QApplication,
     QMainWindow,
@@ -91,6 +92,12 @@ class MainForm(QMainWindow):
         # FIXME: config or constant
         self._apply_rules_automatically()
         self.startTimer(60 * 60 * 1000)
+        self.__ui.cbShowArchivedEnvelopes.stateChanged.connect(
+            self.onShowArchivedChanged
+        )
+        self.__ui.btnToggleArchiveEnvelope.clicked.connect(
+            self.toggleArchiveEnvelope
+        )
         self.raise_()
 
     def _setup_auto_completion(self) -> None:
@@ -98,6 +105,8 @@ class MainForm(QMainWindow):
         for envelope in self.__envMgr.envelopes.values():
             # FIXME: hack to remove weekly envelopes from autocompletion
             if envelope.name.startswith("Week_"):
+                continue
+            if envelope.archived:
                 continue
             envelopeList.append(envelope)
         self.__ui.leExpenseUserInput.set_suggestions(
@@ -158,7 +167,7 @@ class MainForm(QMainWindow):
             self.__envMgr.envelope_value(lwe.id),
             "Transfer from previous week",
             lwe.id,
-            self.__envMgr.this_week_envelope.id
+            self.__envMgr.this_week_envelope.id,
         )
         self.__expMgr.add_expense(expense)
 
@@ -179,18 +188,22 @@ class MainForm(QMainWindow):
             self.__bp.weekly_envelope,
             "Automatic creation of weekly envelope",
             LeftoverEnvelopeId,
-            self.__envMgr.this_week_envelope.id
+            self.__envMgr.this_week_envelope.id,
         )
         self.__expMgr.add_expense(expense)
 
     def _setup_managers(self, data_path: str) -> None:
         path_to = lambda it: os.path.join(data_path, it)
         self.__expMgr = create_expense_repository(fname=path_to("expenses.xml"))
-        self.__envMgr = create_envelope_repository(fname=path_to("envelopes.xml"))
+        self.__envMgr = create_envelope_repository(
+            fname=path_to("envelopes.xml")
+        )
         self.__ruleMgr = create_expense_rule_repository(
             fname=path_to("rules.xml"), expenses=self.__expMgr
         )
-        self.__bp = create_business_plan_repository(fname=path_to("business_plan.xml"))
+        self.__bp = create_business_plan_repository(
+            fname=path_to("business_plan.xml")
+        )
         self.__rulesAppliedMgr = create_applied_rules_repository(
             fname=path_to("rules_applied.xml")
         )
@@ -440,7 +453,12 @@ class MainForm(QMainWindow):
             if isinstance(envelope, WellKnownEnvelope):
                 return envelope.value
             else:
-                return envMgr.id_for_envelope_name(envelope)
+                env_id = envMgr.id_for_envelope_name(envelope)
+                if envMgr._envelopes[env_id].archived:
+                    raise ValueError(
+                        f"Невозможно создать расход для архивного конверта '{envelope}'"
+                    )
+                return env_id
 
         return Expense(
             float(parsed_expense.amount),
@@ -454,15 +472,19 @@ class MainForm(QMainWindow):
     @Slot()
     def addExpense(self) -> None:
         user_input = self.__ui.leExpenseUserInput.text()
-        expense = self._expense_from_user_input(user_input)
-        self.__expMgr.add_expense(expense)
-        exp_date = expense.date.date()
-        topLevelItem = self._get_top_level_item_for_date(exp_date)
-        self._add_item_for_expense(topLevelItem, expense)
-        self._refresh_envelope_values()
-        self.__ui.leExpenseUserInput.setText("")
-        self._show_this_week_envelope()
-        self._expand_today_top_level_item()
+        try:
+            expense = self._expense_from_user_input(user_input)
+            self.__expMgr.add_expense(expense)
+            exp_date = expense.date.date()
+            topLevelItem = self._get_top_level_item_for_date(exp_date)
+            self._add_item_for_expense(topLevelItem, expense)
+            self._refresh_envelope_values()
+            self.__ui.leExpenseUserInput.setText("")
+            self._show_this_week_envelope()
+            self._expand_today_top_level_item()
+        except ValueError as e:
+            QMessageBox.warning(self, "Ошибка", str(e))
+            return
 
     @Slot()
     def deleteExpense(self) -> None:
@@ -533,7 +555,10 @@ class MainForm(QMainWindow):
         self._setup_auto_completion()
 
     def _load_envelopes(self) -> None:
+        show_archived = self.__ui.cbShowArchivedEnvelopes.isChecked()
         for env in self.__envMgr.envelopes.values():
+            if not show_archived and env.archived:
+                continue
             self._add_row_for_envelope(env)
         resizeColumnsToContents(self.__ui.tableWidget_2)
 
@@ -542,8 +567,23 @@ class MainForm(QMainWindow):
         row = tw.rowCount()
         tw.setRowCount(row + 1)
         value = formatValue(int(self.__envMgr.envelope_value(env.id)))
-        tw.setItem(row, 0, self._item_with_id(value, env.id))
-        tw.setItem(row, 1, self._item_with_id(env.name, env.id))
+
+        value_item = self._item_with_id(value, env.id)
+        name_item = self._item_with_id(env.name, env.id)
+
+        # Если конверт архивный, делаем текст серым и курсивом
+        if env.archived:
+            font = QFont()
+            font.setItalic(True)
+            gray_color = QColor(128, 128, 128)
+            value_item.setForeground(gray_color)
+            value_item.setFont(font)
+            name_item.setForeground(gray_color)
+            name_item.setFont(font)
+            name_item.setText(f"[АРХИВ] {env.name}")
+
+        tw.setItem(row, 0, value_item)
+        tw.setItem(row, 1, name_item)
 
     def _item_with_id(self, itemText: str, itemId: ty.Any) -> QTableWidgetItem:
         item = QTableWidgetItem(itemText)
@@ -554,7 +594,19 @@ class MainForm(QMainWindow):
     def onSelectedEnvelopeChanged(
         self, curItem: QTableWidgetItem, prevItem: QTableWidgetItem
     ) -> None:
-        self.fill_detail_table(int(curItem.data(Qt.ItemDataRole.UserRole)))
+        data = curItem.data(Qt.ItemDataRole.UserRole)
+        if data is None:
+            return
+
+        env_id = int(data)
+        self.fill_detail_table(env_id)
+
+        # Обновляем текст кнопки архивации
+        envelope = self.__envMgr.envelopes[env_id]
+        if envelope.archived:
+            self.__ui.btnToggleArchiveEnvelope.setText("Разархивировать")
+        else:
+            self.__ui.btnToggleArchiveEnvelope.setText("Архивировать")
 
     def fill_detail_table(self, envId: int) -> None:
         tw = self.__ui.tableWidget_3
@@ -566,4 +618,48 @@ class MainForm(QMainWindow):
                 self._add_row_for_expense(tw, ex)
         tw.setSortingEnabled(True)
         tw.sortByColumn(0, Qt.SortOrder.DescendingOrder)
+        resizeColumnsToContents(tw)
+
+    @Slot()
+    def onShowArchivedChanged(self) -> None:
+        tw = self.__ui.tableWidget_2
+        tw.clearContents()
+        tw.setRowCount(0)
+        self._load_envelopes()
+
+    @Slot()
+    def toggleArchiveEnvelope(self) -> None:
+        tw = self.__ui.tableWidget_2
+        current_item = tw.currentItem()
+        data = current_item.data(Qt.ItemDataRole.UserRole)
+        if data is None:
+            return
+        env_id = int(data)
+        envelope = self.__envMgr._envelopes[env_id]
+
+        try:
+            if envelope.archived:
+                self.__envMgr.unarchive_envelope(env_id)
+                QMessageBox.information(
+                    self, "Успех", f"Конверт '{envelope.name}' разархивирован"
+                )
+            else:
+                balance = self.__envMgr.envelope_value(env_id)
+                if balance != 0:
+                    QMessageBox.warning(
+                        self,
+                        "Ошибка",
+                        f"Невозможно архивировать конверт с ненулевым балансом ({balance})",
+                    )
+                    return
+                self.__envMgr.archive_envelope(env_id)
+                QMessageBox.information(
+                    self, "Успех", f"Конверт '{envelope.name}' архивирован"
+                )
+
+            self.onShowArchivedChanged()
+            self._setup_auto_completion()
+
+        except Exception as e:
+            QMessageBox.critical(self, "Ошибка", str(e))
         resizeColumnsToContents(tw)

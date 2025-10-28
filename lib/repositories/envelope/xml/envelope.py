@@ -5,26 +5,32 @@ import typing as ty
 from lxml import etree
 from lxml.builder import E  # type: ignore
 from lxml.etree import _Element
-from lxml.builder import E  # type: ignore
 
 from ....models.envelope import Envelope, EnvelopeId
 from ....utils import unwrap
 from ....well_known_envelope import WellKnownEnvelope
-
 from ...expense.xml.expense import ExpenseRepository
 
 
 def envelope_to_xml(envelope: Envelope) -> _Element:
     """Converts an Envelope object to an XML element."""
-    return E.Envelope(id=str(envelope.id), name=envelope.name, desc=envelope.desc)
+    return E.Envelope(
+        id=str(envelope.id),
+        name=envelope.name,
+        desc=envelope.desc,
+        archived=str(envelope.archived).lower(),
+    )
 
 
 def xml_to_envelope(el: _Element) -> Envelope:
     """Converts an XML element to an Envelope object."""
+    archived_str = el.get("archived", "false")
+    archived = archived_str.lower() == "true"
     return Envelope(
         int(unwrap(el.get("id"))),
         unwrap(el.get("name")),
         unwrap(el.get("desc")),
+        archived,
     )
 
 
@@ -175,3 +181,15 @@ class EnvelopeRepository:
                 return v
 
         return self.add_envelope(name)
+
+    def archive_envelope(self, envelope_id: EnvelopeId) -> None:
+        if self.envelope_value(envelope_id) != 0:
+            raise ValueError("Cannot archive envelope with non-zero balance")
+        envelope = self._envelopes[envelope_id]
+        envelope.archived = True
+        self._save()
+
+    def unarchive_envelope(self, envelope_id: EnvelopeId) -> None:
+        envelope = self._envelopes[envelope_id]
+        envelope.archived = False
+        self._save()
