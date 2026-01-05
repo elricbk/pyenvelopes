@@ -2,7 +2,7 @@
 """Export envelope data to Beancount format."""
 
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import TYPE_CHECKING, Optional
@@ -29,6 +29,12 @@ if TYPE_CHECKING:
     from lib.repositories.expense import ExpenseRepository
 
 
+FAVA_OPTIONS = [
+    '1970-01-01 custom "fava-option" "show-accounts-with-zero-transactions" "false"',
+    '1970-01-01 custom "fava-option" "show-accounts-with-zero-balance" "false"',
+]
+WEEKLY_EXPENSES = "Expenses:Weekly"
+
 @dataclass
 class ConversionOptions:
     """Options for Beancount conversion."""
@@ -37,9 +43,13 @@ class ConversionOptions:
     separate_income_leftover: bool = False
     single_expense_account: bool = False
     start_date: Optional[datetime] = None
+    name_rewrite: dict[str, str] = field(default_factory=dict)
+
+    def weekly_expenses(self) -> str:
+        return self.name_rewrite.get(WEEKLY_EXPENSES, WEEKLY_EXPENSES)
 
 
-def sanitize_account_name(name: str) -> str:
+def sanitize_account_name(name: str, name_rewrite: dict[str, str]) -> str:
     """Sanitize envelope name for use in Beancount account names.
 
     Transliterates Cyrillic to Latin, replaces emojis with names, removes underscores and capitalizes
@@ -149,7 +159,8 @@ def sanitize_account_name(name: str) -> str:
                 part[0].upper() + part[1:] if len(part) > 0 else ""
             )
 
-    return "".join(result_parts)
+    sanitized_name = "".join(result_parts)
+    return name_rewrite.get(sanitized_name, sanitized_name)
 
 
 def is_weekly_envelope(envelope: Envelope) -> bool:
@@ -227,7 +238,7 @@ def map_account(
         return "Assets:WeeklyEnvelope"
 
     # Handle regular envelopes
-    safe_name = sanitize_account_name(envelope.name)
+    safe_name = sanitize_account_name(envelope.name, options.name_rewrite)
     return f"Assets:Envelopes:{safe_name}"
 
 
@@ -290,10 +301,13 @@ def format_transaction(
     elif from_is_trash or to_is_trash:
         # Expense transaction
         if from_is_trash:
-            # Money going to trash (shouldn't happen normally)
-            source_account = map_account(
-                expense.from_id, envelope_repo, options, is_source=True
-            )
+            # Money returning from trash (usually some compensation)
+            if is_weekly_envelope(to_envelope):
+                source_account = options.weekly_expenses()
+            else:
+                # Use target envelope name for expense account
+                safe_name = sanitize_account_name(to_name, options.name_rewrite)
+                source_account = f"Expenses:{safe_name}"
             target_account = map_account(
                 expense.to_id, envelope_repo, options, is_source=False
             )
@@ -306,12 +320,11 @@ def format_transaction(
                 target_account = "Expenses:General"
             else:
                 # Check if source is weekly envelope
-                from_envelope = envelope_repo._envelopes[expense.from_id]
                 if is_weekly_envelope(from_envelope):
-                    target_account = "Expenses:Weekly"
+                    target_account = options.weekly_expenses()
                 else:
                     # Use source envelope name for expense account
-                    safe_name = sanitize_account_name(from_name)
+                    safe_name = sanitize_account_name(from_name, options.name_rewrite)
                     target_account = f"Expenses:{safe_name}"
     else:
         # Regular transfer between envelopes
@@ -322,20 +335,38 @@ def format_transaction(
             expense.to_id, envelope_repo, options, is_source=False
         )
 
-    # Special handling: if source is weekly and target is trash, use Expenses:Weekly
+    # Special handling: if source is weekly and target is trash, use options.weekly_expenses()
     from_is_weekly = is_weekly_envelope(
         envelope_repo._envelopes[expense.from_id]
     )
     if from_is_weekly and expense.to_id == WellKnownEnvelope.TrashBin.value:
-        target_account = "Expenses:Weekly"
+        target_account = options.weekly_expenses()
 
     # Add postings
-    lines.append(
-        f"  {source_account:<40} {-expense.value:>12.2f} {options.currency}"
-    )
-    lines.append(
-        f"  {target_account:<40} {expense.value:>12.2f} {options.currency}"
-    )
+    if source_account.startswith("Assets:Envelopes:") and target_account.startswith("Assets:Envelopes:"):
+        # This is special handling for moving money from one envelope to another
+        # We move it via corresponding expenses
+        source_expense = "Expenses:" + source_account.removeprefix("Assets:Envelopes:")
+        lines.append(
+            f"  {source_account:<40} {-expense.value:>12.2f} {options.currency}"
+        )
+        lines.append(
+            f"  {source_expense:<40} {expense.value:>12.2f} {options.currency}"
+        )
+        target_expense = "Expenses:" + target_account.removeprefix("Assets:Envelopes:")
+        lines.append(
+            f"  {target_expense:<40} {-expense.value:>12.2f} {options.currency}"
+        )
+        lines.append(
+            f"  {target_account:<40} {expense.value:>12.2f} {options.currency}"
+        )
+    else:
+        lines.append(
+            f"  {source_account:<40} {-expense.value:>12.2f} {options.currency}"
+        )
+        lines.append(
+            f"  {target_account:<40} {expense.value:>12.2f} {options.currency}"
+        )
 
     return "\n".join(lines)
 
@@ -362,29 +393,34 @@ def get_all_accounts(
             WellKnownEnvelope.TrashBin.value,
             WellKnownEnvelope.Leftover.value,
         ]:
-            safe_name = sanitize_account_name(envelope.name)
+            safe_name = sanitize_account_name(envelope.name, options.name_rewrite)
             accounts.add(f"Assets:Envelopes:{safe_name}")
 
     # Add expense accounts
     # Always add Expenses:General as it's used for various transactions
     accounts.add("Expenses:General")
 
+    well_known_envelopes = (
+        WellKnownEnvelope.Income,
+        WellKnownEnvelope.TrashBin,
+        WellKnownEnvelope.Leftover,
+        WellKnownEnvelope.ThisWeek
+    )
+
+    def add_expense_for(envelope_id: int) -> None:
+        if envelope_id in well_known_envelopes:
+            return
+        name = envelope_repo.envelope_name_for_id(envelope_id)
+        envelope = envelope_repo._envelopes[envelope_id]
+        if not is_weekly_envelope(envelope):
+            safe_name = sanitize_account_name(name, options.name_rewrite)
+            accounts.add(f"Expenses:{safe_name}")
+
     if not options.single_expense_account:
         # Collect all expense accounts from transactions
         for expense in expense_repo.expenses:
-            if expense.to_id == WellKnownEnvelope.TrashBin.value:
-                from_name = envelope_repo.envelope_name_for_id(expense.from_id)
-                # Check if it's a weekly envelope
-                from_envelope = envelope_repo._envelopes[expense.from_id]
-                if is_weekly_envelope(from_envelope):
-                    accounts.add("Expenses:Weekly")
-                else:
-                    safe_name = sanitize_account_name(from_name)
-                    accounts.add(f"Expenses:{safe_name}")
-            elif expense.from_id == WellKnownEnvelope.TrashBin.value:
-                to_name = envelope_repo.envelope_name_for_id(expense.to_id)
-                safe_name = sanitize_account_name(to_name)
-                accounts.add(f"Expenses:{safe_name}")
+            add_expense_for(expense.from_id)
+            add_expense_for(expense.to_id)
 
     # Add weekly expense account if needed
     for expense in expense_repo.expenses:
@@ -392,7 +428,7 @@ def get_all_accounts(
             envelope_repo._envelopes[expense.from_id]
         )
         if from_is_weekly and expense.to_id == WellKnownEnvelope.TrashBin.value:
-            accounts.add("Expenses:Weekly")
+            accounts.add(options.weekly_expenses())
             break
 
     return accounts
@@ -448,7 +484,7 @@ def generate_beancount_file(
     name_mapping = {}
     for envelope in envelope_repo._envelopes.values():
         if not is_weekly_envelope(envelope):
-            safe_name = sanitize_account_name(envelope.name)
+            safe_name = sanitize_account_name(envelope.name, options.name_rewrite)
             if envelope.id not in [
                 WellKnownEnvelope.Income.value,
                 WellKnownEnvelope.TrashBin.value,
@@ -466,6 +502,10 @@ def generate_beancount_file(
             lines.append(f'  original_name: "{escaped_name}"')
         else:
             lines.append(f"{open_date} open {account}")
+    lines.append("")
+
+    for line in FAVA_OPTIONS:
+        lines.append(line)
     lines.append("")
 
     # Transactions
@@ -496,7 +536,7 @@ def generate_beancount_file(
                     "%Y-%m-%d"
                 )
 
-                safe_name = sanitize_account_name(envelope.name)
+                safe_name = sanitize_account_name(envelope.name, options.name_rewrite)
                 if is_weekly_envelope(envelope):
                     account = "Assets:WeeklyEnvelope"
                 else:
@@ -546,12 +586,22 @@ def main(
     expense_repo = create_expense_repository(str(data_path / "expenses.xml"))
     envelope_repo.set_expense_repository(expense_repo)
 
+    name_rewrite_file = data_path / "name_rewrite.txt"
+    name_rewrite = {}
+    if name_rewrite_file.exists():
+        with open(name_rewrite_file, "r", encoding="ascii") as f:
+            for line in f:
+                if l := line.strip():
+                    src, dst = l.split()
+                    name_rewrite[src] = dst
+
     # Create options
     options = ConversionOptions(
         currency="RUB",
         separate_income_leftover=separate_income_leftover,
         single_expense_account=single_expense_account,
         start_date=start_date,
+        name_rewrite=name_rewrite,
     )
 
     # Generate Beancount file
